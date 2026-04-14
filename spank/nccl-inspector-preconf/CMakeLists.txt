@@ -8,6 +8,7 @@ set(LIBRARY_NAME nccliprecon)
 set(SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_shim.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_helpers.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_options.c
 )
 
 if (USE_SYSTEM_SLURM)

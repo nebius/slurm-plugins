@@ -14,6 +14,8 @@ extern int go_spank_task_init_privileged(spank_t spank, int argc, char **argv);
 
 extern int go_spank_exit(spank_t spank, int argc, char **argv);
 
+extern int go_spank_parse_option(char *name, char *value);
+
 // endregion GoExports
 
 // region HelpersExports
@@ -22,9 +24,15 @@ spank_context_t snccliprecon_spank_context(void);
 
 void snccliprecon_log(const char *msg);
 
+void snccliprecon_log_error(const char *fmt, ...);
+
 spank_err_t snccliprecon_getenv(spank_t spank, const char *key, char *buffer, int length);
 
 spank_err_t snccliprecon_setenv(spank_t spank, const char *key, const char *value);
+
+spank_err_t snccliprecon_parse_option(const char *name, const char *value);
+
+spank_err_t snccliprecon_args_register(spank_t spank);
 
 // endregion HelpersExports
 

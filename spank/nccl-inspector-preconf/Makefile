@@ -105,3 +105,8 @@ redeploy: $(PLUGIN_SO)
 		$(NODE_RANGE_LOGIN), \
 		kubectl -n soperator cp ./$(PLUGIN_SO) login-$(i):/usr/lib/$(ARCH_LIB)-linux-gnu/slurm/$(PLUGIN_NAME).so ; \
 	)
+
+.PHONY: generate-options
+generate-options:
+	@cd src && \
+		go run ./cmd/spank-options-gen > spank_options.c

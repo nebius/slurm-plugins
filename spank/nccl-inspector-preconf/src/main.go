@@ -9,12 +9,29 @@ import "C"
 import (
 	"fmt"
 
+	"github.com/nebius/nccl-inspector-preconf/internal/arg"
 	"github.com/nebius/nccl-inspector-preconf/internal/cfg"
+	"github.com/nebius/nccl-inspector-preconf/internal/log"
 )
 
 var (
 	config = cfg.NewConfig()
 )
+
+//export go_spank_parse_option
+//goland:noinspection GoSnakeCaseUsage
+func go_spank_parse_option(name *C.char, value *C.char) C.int {
+	if name == nil || value == nil {
+		return C.ESPANK_BAD_ARG
+	}
+
+	if err := arg.ParseByName(config, C.GoString(name), C.GoString(value)); err != nil {
+		log.Message(err.Error())
+		return C.ESPANK_BAD_ARG
+	}
+
+	return C.ESPANK_SUCCESS
+}
 
 //export go_spank_init
 //goland:noinspection GoSnakeCaseUsage

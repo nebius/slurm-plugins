@@ -1,4 +1,5 @@
 #include "spank_shim.h"
+#include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -13,7 +14,18 @@ spank_context_t snccliprecon_spank_context() {
 }
 
 void snccliprecon_log(const char *msg) {
-  slurm_spank_log(msg);
+  slurm_spank_log("%s", msg);
+}
+
+void snccliprecon_log_error(const char *fmt, ...) {
+  char buffer[1024];
+  va_list args;
+
+  va_start(args, fmt);
+  vsnprintf(buffer, sizeof(buffer), fmt, args);
+  va_end(args);
+
+  slurm_error("%s", buffer);
 }
 
 spank_err_t snccliprecon_getenv(spank_t spank, const char *key, char *buffer, int const length) {
@@ -22,4 +34,8 @@ spank_err_t snccliprecon_getenv(spank_t spank, const char *key, char *buffer, in
 
 spank_err_t snccliprecon_setenv(spank_t spank, const char *key, const char *value) {
   return spank_setenv(spank, key, value, 1);
+}
+
+spank_err_t snccliprecon_parse_option(const char *name, const char *value) {
+  return go_spank_parse_option((char *)name, (char *)value);
 }
