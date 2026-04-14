@@ -13,6 +13,7 @@ import (
 	argparse "github.com/nebius/nccl-inspector-preconf/internal/arg/parse"
 	"github.com/nebius/nccl-inspector-preconf/internal/bridge"
 	"github.com/nebius/nccl-inspector-preconf/internal/cfg"
+	"github.com/nebius/nccl-inspector-preconf/internal/env"
 	"github.com/nebius/nccl-inspector-preconf/internal/log"
 )
 
@@ -66,6 +67,14 @@ func go_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	if !config.Enabled {
 		return C.ESPANK_SUCCESS
 	}
+
+	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+
+	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.InspectorSO)
+	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", config.LogDir)
+	env.SetIfMissing(ctx, "NCCL_INSPECTOR_PROM_DUMP", "0")
+	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS", "1000000")
+	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_VERBOSE", "1")
 
 	return C.ESPANK_SUCCESS
 }

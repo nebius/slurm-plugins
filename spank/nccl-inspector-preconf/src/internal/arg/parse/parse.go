@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/nebius/nccl-inspector-preconf/internal/arg"
+	"github.com/nebius/nccl-inspector-preconf/internal/bridge"
 	"github.com/nebius/nccl-inspector-preconf/internal/cfg"
-	"github.com/nebius/nccl-inspector-preconf/internal/env"
 	"github.com/nebius/nccl-inspector-preconf/internal/log"
 )
 
-func ParseArgs(config *cfg.Config, spank env.Context, passedArgs []string) {
+func ParseArgs(config *cfg.Config, spank bridge.SpankContext, passedArgs []string) {
 	ParseArgsFromPlugstack(config, passedArgs)
 	ParseArgsFromEnv(config, spank)
 }
@@ -35,7 +35,7 @@ func ParseArgsFromPlugstack(config *cfg.Config, passedArgs []string) {
 	}
 }
 
-func ParseArgsFromEnv(config *cfg.Config, spank env.Context) {
+func ParseArgsFromEnv(config *cfg.Config, spank bridge.SpankContext) {
 	for _, definedArg := range arg.Args {
 		var (
 			value string
