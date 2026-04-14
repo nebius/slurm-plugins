@@ -17,7 +17,11 @@ void snccliprecon_log(const char *msg) {
   slurm_spank_log("%s", msg);
 }
 
-void snccliprecon_log_error(const char *fmt, ...) {
+void snccliprecon_log_error(const char *msg) {
+  slurm_error("%s", msg);
+}
+
+void snccliprecon_log_error_fmt(const char *fmt, ...) {
   char buffer[1024];
   va_list args;
 

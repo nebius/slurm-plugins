@@ -24,7 +24,9 @@ spank_context_t snccliprecon_spank_context(void);
 
 void snccliprecon_log(const char *msg);
 
-void snccliprecon_log_error(const char *fmt, ...);
+void snccliprecon_log_error(const char *msg);
+
+void snccliprecon_log_error_fmt(const char *fmt, ...);
 
 spank_err_t snccliprecon_getenv(spank_t spank, const char *key, char *buffer, int length);
 

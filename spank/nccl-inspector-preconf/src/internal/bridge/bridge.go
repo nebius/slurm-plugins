@@ -86,4 +86,11 @@ func Log(msg string) {
 	C.snccliprecon_log(cString)
 }
 
+func LogError(msg string) {
+	cString := C.CString(msg)
+	defer C.free(unsafe.Pointer(cString))
+
+	C.snccliprecon_log_error(cString)
+}
+
 // endregion Log

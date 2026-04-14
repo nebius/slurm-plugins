@@ -7,7 +7,6 @@ package main
 */
 import "C"
 import (
-	"fmt"
 	"unsafe"
 
 	"github.com/nebius/nccl-inspector-preconf/internal/arg"
@@ -41,9 +40,7 @@ func go_spank_parse_option(name *C.char, value *C.char) C.int {
 func go_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	log.Message("Hi from go_spank_init")
 
-	ctx := C.snccliprecon_spank_context()
-	log.Message(fmt.Sprintf("Context: %v\n", ctx))
-	switch ctx {
+	switch C.snccliprecon_spank_context() {
 	case C.S_CTX_LOCAL, C.S_CTX_REMOTE:
 		{
 			argparse.ParseArgs(
@@ -53,9 +50,6 @@ func go_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 			)
 		}
 	}
-
-	config.Print()
-	config.A = "2"
 
 	return C.ESPANK_SUCCESS
 }
@@ -69,13 +63,9 @@ func go_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 		return C.ESPANK_SUCCESS
 	}
 
-	config.Print()
-
 	if !config.Enabled {
 		return C.ESPANK_SUCCESS
 	}
-
-	config.A = "3"
 
 	return C.ESPANK_SUCCESS
 }
@@ -89,13 +79,9 @@ func go_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C
 		return C.ESPANK_SUCCESS
 	}
 
-	config.Print()
-
 	if !config.Enabled {
 		return C.ESPANK_SUCCESS
 	}
-
-	config.A = "4"
 
 	return C.ESPANK_SUCCESS
 }
@@ -108,8 +94,6 @@ func go_spank_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
 		return C.ESPANK_SUCCESS
 	}
-
-	config.Print()
 
 	if !config.Enabled {
 		return C.ESPANK_SUCCESS

@@ -23,20 +23,30 @@ func ParseArgsFromPlugstack(config *cfg.Config, passedArgs []string) {
 			if argValue, ok := strings.CutPrefix(passedArg, definedArg.Name+"="); ok {
 				recognized = true
 				if err := definedArg.Parse(config, argValue); err != nil {
-					log.Message(fmt.Sprintf("Invalid plugin arg %s: %v", passedArg, err))
+					log.Error(fmt.Sprintf("Invalid plugin arg %s: %v", passedArg, err))
 				}
 				break
 			}
 		}
 
 		if !recognized {
-			log.Message(fmt.Sprintf("Unknown plugin arg: %s", passedArg))
+			log.Error(fmt.Sprintf("Unknown plugin arg: %s", passedArg))
 		}
 	}
 }
 
 func ParseArgsFromEnv(config *cfg.Config, spank env.Context) {
-	_ = config
-	_ = spank
-	// Placeholder for env-backed parsing once env var handling is implemented.
+	for _, definedArg := range arg.Args {
+		var (
+			value string
+			found bool
+		)
+		if value, found = spank.Get(arg.GetArgNameForEnv(definedArg.Name)); !found {
+			continue
+		}
+
+		if err := definedArg.Parse(config, value); err != nil {
+			log.Error(fmt.Sprintf("Invalid plugin arg %s value: %v", definedArg.Name, err))
+		}
+	}
 }

@@ -69,7 +69,7 @@ spank_err_t {{ .Prefix }}_args_register(spank_t spank) {
     for (int i = 0; spank_opts[i].name != NULL; ++i) {
         res = spank_option_register(spank, &spank_opts[i]);
         if (res != ESPANK_SUCCESS) {
-            {{ .Prefix }}_log_error(
+            {{ .Prefix }}_log_error_fmt(
                 "Cannot register option %s: %s",
                 spank_opts[i].name,
                 spank_strerror(res)
@@ -92,7 +92,7 @@ static int {{ .Callback }}(int val, const char *optarg, int remote) {
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        {{ $.Prefix }}_log_error(
+        {{ $.Prefix }}_log_error_fmt(
             "--%s: argument required",
             {{ cString .Name }}
         );

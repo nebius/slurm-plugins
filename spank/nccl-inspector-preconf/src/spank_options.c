@@ -52,7 +52,7 @@ spank_err_t snccliprecon_args_register(spank_t spank) {
     for (int i = 0; spank_opts[i].name != NULL; ++i) {
         res = spank_option_register(spank, &spank_opts[i]);
         if (res != ESPANK_SUCCESS) {
-            snccliprecon_log_error(
+            snccliprecon_log_error_fmt(
                 "Cannot register option %s: %s",
                 spank_opts[i].name,
                 spank_strerror(res)
@@ -75,7 +75,7 @@ static int spank_option_enabled(int val, const char *optarg, int remote) {
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        snccliprecon_log_error(
+        snccliprecon_log_error_fmt(
             "--%s: argument required",
             "snccliprecon-enabled"
         );
@@ -98,7 +98,7 @@ static int spank_option_inspector_so(int val, const char *optarg, int remote) {
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        snccliprecon_log_error(
+        snccliprecon_log_error_fmt(
             "--%s: argument required",
             "snccliprecon-inspector-so"
         );
@@ -121,7 +121,7 @@ static int spank_option_out_dir(int val, const char *optarg, int remote) {
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        snccliprecon_log_error(
+        snccliprecon_log_error_fmt(
             "--%s: argument required",
             "snccliprecon-out-dir"
         );
