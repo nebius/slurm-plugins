@@ -45,8 +45,10 @@ var (
 				[]string{
 					"path to the directory for storing NCCL Inspector outputs.",
 					fmt.Sprintf(
-						"Supports %s substitution for job ID.",
+						"Supports %s, %s, and %s substitutions for <job ID>, <step ID> and <job ID>.<step ID> accordingly.",
 						SubstitutionJobId,
+						SubstitutionStepId,
+						SubstitutionJobStepId,
 					),
 				},
 				" ",

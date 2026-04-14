@@ -10,10 +10,11 @@ func Set(spank bridge.SpankContext, key, value string) bool {
 	return spank.Set(key, value)
 }
 
-func SetIfMissing(spank bridge.SpankContext, key, value string) {
+func SetIfMissing(spank bridge.SpankContext, key, value string) bool {
 	if _, found := Get(spank, key); found {
-		return
+		return false
 	}
 
 	Set(spank, key, value)
+	return true
 }

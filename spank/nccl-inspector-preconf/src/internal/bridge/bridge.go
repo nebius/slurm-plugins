@@ -83,6 +83,23 @@ func (context SpankContext) GetJobId() string {
 	return fmt.Sprintf("%d", retrieve())
 }
 
+func (context SpankContext) GetStepId() string {
+	retrieve := func() uint32 {
+		var stepID C.uint32_t
+
+		if rc := C.snccliprecon_get_step_id(
+			(C.spank_t)(context.raw),
+			&stepID,
+		); rc != C.ESPANK_SUCCESS {
+			return 0
+		}
+
+		return uint32(stepID)
+	}
+
+	return fmt.Sprintf("%d", retrieve())
+}
+
 // endregion Job
 
 // region Log

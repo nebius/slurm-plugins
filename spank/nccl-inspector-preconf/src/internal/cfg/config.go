@@ -10,6 +10,8 @@ type Config struct {
 	Enabled     bool
 	InspectorSO string
 	LogDir      string
+
+	LogDirSetByPlugin bool
 }
 
 func NewConfig() *Config {

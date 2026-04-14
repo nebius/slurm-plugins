@@ -30,7 +30,7 @@ struct spank_option spank_opts[] = {
     {
         .name    = "snccliprecon-out-dir",
         .arginfo = "PATH",
-        .usage   = "[nccl_inspector_preconf] path to the directory for storing NCCL Inspector outputs. Supports %j substitution for job ID. SNCCLIPRECON_OUT_DIR env var is also supported.",
+        .usage   = "[nccl_inspector_preconf] path to the directory for storing NCCL Inspector outputs. Supports %j, %s, and %J substitutions for <job ID>, <step ID> and <job ID>.<step ID> accordingly. SNCCLIPRECON_OUT_DIR env var is also supported.",
         .has_arg = true,
         .val     = 0,
         .cb      = spank_option_out_dir,

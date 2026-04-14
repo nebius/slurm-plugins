@@ -58,6 +58,9 @@ func go_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 //export go_spank_user_init
 //goland:noinspection GoSnakeCaseUsage
 func go_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
+	_ = argc
+	_ = argv
+
 	log.Message("Hi from go_spank_user_init")
 
 	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
@@ -72,7 +75,9 @@ func go_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	jobId := ctx.GetJobId()
 
 	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.InspectorSO)
-	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.LogDir, jobId))
+	if setByPlugin := env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.LogDir, jobId)); setByPlugin {
+		config.LogDirSetByPlugin = true
+	}
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_PROM_DUMP", "0")
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS", "1000000")
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_VERBOSE", "1")
@@ -83,6 +88,9 @@ func go_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 //export go_spank_task_init_privileged
 //goland:noinspection GoSnakeCaseUsage
 func go_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C.int {
+	_ = argc
+	_ = argv
+
 	log.Message("Hi from go_spank_task_init_privileged")
 
 	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
@@ -93,12 +101,23 @@ func go_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C
 		return C.ESPANK_SUCCESS
 	}
 
+	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+	jobId := ctx.GetJobId()
+	stepId := ctx.GetStepId()
+
+	if config.LogDirSetByPlugin {
+		env.Set(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobStepId(config.LogDir, jobId, stepId))
+	}
+
 	return C.ESPANK_SUCCESS
 }
 
 //export go_spank_exit
 //goland:noinspection GoSnakeCaseUsage
 func go_spank_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
+	_ = argc
+	_ = argv
+
 	log.Message("Hi from go_spank_exit")
 
 	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {

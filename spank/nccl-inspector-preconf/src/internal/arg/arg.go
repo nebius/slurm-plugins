@@ -103,9 +103,21 @@ func ParseByName(config *cfg.Config, name, value string) error {
 }
 
 const (
-	SubstitutionJobId = "%j"
+	SubstitutionJobId     = "%j"
+	SubstitutionStepId    = "%s"
+	SubstitutionJobStepId = "%J"
 )
 
 func SubstituteJobId(value, jobId string) string {
 	return strings.ReplaceAll(value, SubstitutionJobId, jobId)
+}
+
+func SubstituteStepId(value, stepId string) string {
+	return strings.ReplaceAll(value, SubstitutionStepId, stepId)
+}
+
+func SubstituteJobStepId(value, jobId, stepId string) string {
+	value = SubstituteJobId(value, jobId)
+	value = SubstituteStepId(value, stepId)
+	return strings.ReplaceAll(value, SubstitutionJobStepId, jobId+"."+stepId)
 }

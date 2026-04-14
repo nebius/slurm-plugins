@@ -18,6 +18,10 @@ spank_err_t snccliprecon_get_job_id(spank_t spank, uint32_t *job_id) {
   return spank_get_item(spank, S_JOB_ID, job_id);
 }
 
+spank_err_t snccliprecon_get_step_id(spank_t spank, uint32_t *step_id) {
+  return spank_get_item(spank, S_JOB_STEPID, step_id);
+}
+
 void snccliprecon_log(const char *msg) {
   slurm_spank_log("%s", msg);
 }
