@@ -4,6 +4,7 @@ package arg
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/nebius/nccl-inspector-preconf/internal/cfg"
 	"github.com/nebius/nccl-inspector-preconf/internal/plugin"
@@ -40,7 +41,16 @@ var (
 		),
 		NewStringArg(
 			"out-dir",
-			"path to the directory for storing NCCL Inspector outputs.",
+			strings.Join(
+				[]string{
+					"path to the directory for storing NCCL Inspector outputs.",
+					fmt.Sprintf(
+						"Supports %s substitution for job ID.",
+						SubstitutionJobId,
+					),
+				},
+				" ",
+			),
 			PathValueInfo,
 			func(config *cfg.Config, value string) error {
 				parsed, err := ParseStringValue(value)

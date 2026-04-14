@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/file.h>
@@ -11,6 +12,10 @@
 
 spank_context_t snccliprecon_spank_context() {
   return spank_context();
+}
+
+spank_err_t snccliprecon_get_job_id(spank_t spank, uint32_t *job_id) {
+  return spank_get_item(spank, S_JOB_ID, job_id);
 }
 
 void snccliprecon_log(const char *msg) {

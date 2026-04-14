@@ -22,6 +22,8 @@ extern int go_spank_parse_option(char *name, char *value);
 
 spank_context_t snccliprecon_spank_context(void);
 
+spank_err_t snccliprecon_get_job_id(spank_t spank, uint32_t *job_id);
+
 void snccliprecon_log(const char *msg);
 
 void snccliprecon_log_error(const char *msg);

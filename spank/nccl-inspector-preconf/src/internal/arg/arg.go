@@ -101,3 +101,11 @@ func ParseByName(config *cfg.Config, name, value string) error {
 
 	return fmt.Errorf("unknown plugin arg %q", name)
 }
+
+const (
+	SubstitutionJobId = "%j"
+)
+
+func SubstituteJobId(value, jobId string) string {
+	return strings.ReplaceAll(value, SubstitutionJobId, jobId)
+}

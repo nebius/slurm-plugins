@@ -69,9 +69,10 @@ func go_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	}
 
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+	jobId := ctx.GetJobId()
 
 	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.InspectorSO)
-	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", config.LogDir)
+	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.LogDir, jobId))
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_PROM_DUMP", "0")
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS", "1000000")
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_VERBOSE", "1")
