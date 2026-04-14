@@ -35,7 +35,7 @@ PLUGIN_NAME := spank_nccl_inspector_preconf
 PLUGIN_SO := $(BUILD_DIR)/$(PLUGIN_NAME).so
 
 NODE_COUNT_WORKER ?= 2
-NODE_COUNT_LOGIN ?= 1
+NODE_COUNT_LOGIN ?= 2
 NODE_RANGE_WORKER := $(shell seq 0 $$(($(NODE_COUNT_WORKER) - 1)))
 NODE_RANGE_LOGIN := $(shell seq 0 $$(($(NODE_COUNT_LOGIN) - 1)))
 
