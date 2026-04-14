@@ -3,6 +3,7 @@ package cfg
 import (
 	"fmt"
 
+	"github.com/nebius/nccl-inspector-preconf/internal/log"
 	"github.com/nebius/nccl-inspector-preconf/internal/unix"
 )
 
@@ -23,9 +24,9 @@ func NewConfig() *Config {
 }
 
 func (c *Config) Print() {
-	fmt.Println("Config:")
-	fmt.Printf("	Enabled: %v\n", c.Enabled)
-	fmt.Printf("	InspectorSO: %s\n", c.InspectorSO)
-	fmt.Printf("	LogDir: %s\n", c.LogDir)
-	fmt.Printf("	A: %s\n", c.A)
+	log.Message("Config:")
+	log.Message(fmt.Sprintf("	Enabled: %v\n", c.Enabled))
+	log.Message(fmt.Sprintf("	InspectorSO: %s\n", c.InspectorSO))
+	log.Message(fmt.Sprintf("	LogDir: %s\n", c.LogDir))
+	log.Message(fmt.Sprintf("	A: %s\n", c.A))
 }

@@ -21,6 +21,20 @@ func NewSpankContext(raw unsafe.Pointer) SpankContext {
 	return SpankContext{raw: raw}
 }
 
+func CStringArrayToStrings(argc int, argv unsafe.Pointer) []string {
+	if argc == 0 || argv == nil {
+		return nil
+	}
+
+	raw := unsafe.Slice((**C.char)(argv), argc)
+	args := make([]string, 0, len(raw))
+	for _, value := range raw {
+		args = append(args, C.GoString(value))
+	}
+
+	return args
+}
+
 // endregion Context
 
 // region Env
