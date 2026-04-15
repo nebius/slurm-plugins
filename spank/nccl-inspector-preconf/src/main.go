@@ -25,9 +25,9 @@ var (
 	state  = plugin.NewState()
 )
 
-//export go_spank_parse_option
+//export snccliprecon_spank_parse_option
 //goland:noinspection GoSnakeCaseUsage
-func go_spank_parse_option(name *C.char, value *C.char) C.int {
+func snccliprecon_spank_parse_option(name *C.char, value *C.char) C.int {
 	if name == nil || value == nil {
 		return C.ESPANK_BAD_ARG
 	}
@@ -40,9 +40,9 @@ func go_spank_parse_option(name *C.char, value *C.char) C.int {
 	return C.ESPANK_SUCCESS
 }
 
-//export go_spank_init
+//export snccliprecon_spank_init
 //goland:noinspection GoSnakeCaseUsage
-func go_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
+func snccliprecon_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	switch C.snccliprecon_spank_context() {
 	case C.S_CTX_LOCAL, C.S_CTX_REMOTE:
 		{
@@ -57,9 +57,9 @@ func go_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	return C.ESPANK_SUCCESS
 }
 
-//export go_spank_user_init
+//export snccliprecon_spank_user_init
 //goland:noinspection GoSnakeCaseUsage
-func go_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
+func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	_, _ = argc, argv
 
 	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
@@ -89,9 +89,9 @@ func go_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	return C.ESPANK_SUCCESS
 }
 
-//export go_spank_task_init_privileged
+//export snccliprecon_spank_task_init_privileged
 //goland:noinspection GoSnakeCaseUsage
-func go_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C.int {
+func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	_, _ = argc, argv
 
 	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
@@ -156,9 +156,9 @@ func go_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C
 	return C.ESPANK_SUCCESS
 }
 
-//export go_spank_task_exit
+//export snccliprecon_spank_task_exit
 //goland:noinspection GoSnakeCaseUsage
-func go_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
+func snccliprecon_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	_, _ = argc, argv
 
 	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
@@ -179,9 +179,9 @@ func go_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	return C.ESPANK_SUCCESS
 }
 
-//export go_spank_exit
+//export snccliprecon_spank_exit
 //goland:noinspection GoSnakeCaseUsage
-func go_spank_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
+func snccliprecon_spank_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	_, _, _ = spank, argc, argv
 
 	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {

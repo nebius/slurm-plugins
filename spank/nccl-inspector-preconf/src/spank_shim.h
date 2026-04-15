@@ -6,17 +6,17 @@
 
 // region GoExports
 
-extern int go_spank_init(spank_t spank, int argc, char **argv);
+extern int snccliprecon_spank_init(spank_t spank, int argc, char **argv);
 
-extern int go_spank_user_init(spank_t spank, int argc, char **argv);
+extern int snccliprecon_spank_user_init(spank_t spank, int argc, char **argv);
 
-extern int go_spank_task_init_privileged(spank_t spank, int argc, char **argv);
+extern int snccliprecon_spank_task_init_privileged(spank_t spank, int argc, char **argv);
 
-extern int go_spank_task_exit(spank_t spank, int argc, char **argv);
+extern int snccliprecon_spank_task_exit(spank_t spank, int argc, char **argv);
 
-extern int go_spank_exit(spank_t spank, int argc, char **argv);
+extern int snccliprecon_spank_exit(spank_t spank, int argc, char **argv);
 
-extern int go_spank_parse_option(char *name, char *value);
+extern int snccliprecon_spank_parse_option(char *name, char *value);
 
 // endregion GoExports
 
