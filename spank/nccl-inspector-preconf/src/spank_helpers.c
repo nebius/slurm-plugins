@@ -115,5 +115,5 @@ spank_err_t snccliprecon_setenv(spank_t spank, const char *key, const char *valu
  * @return SPANK status code.
  */
 spank_err_t snccliprecon_parse_option(const char *name, const char *value) {
-  return snccliprecon_spank_parse_option((char *)name, (char *)value);
+  return snccliprecon_spank_parse_option((char *) name, (char *) value);
 }

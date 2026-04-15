@@ -62,4 +62,4 @@ int slurm_spank_task_exit(spank_t spank, int argc, char **argv) {
 /**
  * Slurm sentinel step ID used to detect batch-script contexts.
  */
-uint32_t snccliprecon_slurm_batch_script_id = (uint32_t)(0xfffffffb);
+uint32_t snccliprecon_slurm_batch_script_id = (uint32_t) (0xfffffffb);
