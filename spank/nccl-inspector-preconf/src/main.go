@@ -16,11 +16,13 @@ import (
 	"github.com/nebius/nccl-inspector-preconf/internal/enroot"
 	"github.com/nebius/nccl-inspector-preconf/internal/env"
 	"github.com/nebius/nccl-inspector-preconf/internal/log"
+	"github.com/nebius/nccl-inspector-preconf/internal/plugin"
 	"github.com/nebius/nccl-inspector-preconf/internal/unix"
 )
 
 var (
 	config = cfg.NewConfig()
+	state  = plugin.NewState()
 )
 
 //export go_spank_parse_option
@@ -71,9 +73,14 @@ func go_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
 	jobId := ctx.GetJobId()
 
-	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.InspectorSO)
-	if setByPlugin := env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.LogDir, jobId)); setByPlugin {
-		config.LogDirSetByPlugin = true
+	{
+		inspectorSO, _ := env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.InspectorSO)
+		state.InspectorSO = inspectorSO
+	}
+	{
+		dumpDir, setByPlugin := env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.LogDir, jobId))
+		state.LogDir = dumpDir
+		state.LogDirSetByPlugin = setByPlugin
 	}
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_PROM_DUMP", "0")
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS", "1000000")
@@ -102,7 +109,7 @@ func go_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C
 	// region Ensure dump dir
 
 	ensureDumpDir := func() error {
-		if !config.LogDirSetByPlugin {
+		if !state.LogDirSetByPlugin {
 			return nil
 		}
 
@@ -129,11 +136,11 @@ func go_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C
 			jobId,
 			stepId,
 			[]enroot.Mount{{
-				Path:        config.InspectorSO,
+				Path:        state.InspectorSO,
 				IsDir:       false,
 				IsReadWrite: false,
 			}, {
-				Path:        config.LogDir,
+				Path:        state.LogDir,
 				IsDir:       true,
 				IsReadWrite: true,
 			}},
