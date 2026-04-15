@@ -19,6 +19,10 @@ int slurm_spank_task_init_privileged(spank_t spank, int argc, char **argv) {
   return go_spank_task_init_privileged(spank, argc, argv);
 }
 
+int slurm_spank_task_exit(spank_t spank, int argc, char **argv) {
+  return go_spank_task_exit(spank, argc, argv);
+}
+
 int slurm_spank_exit(spank_t spank, int argc, char **argv) {
   return go_spank_exit(spank, argc, argv);
 }
