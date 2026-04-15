@@ -76,16 +76,16 @@ func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.
 	}
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
 
-	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.InspectorSO)
+	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.ProfilerPlugin)
 	{
-		_, setByPlugin := env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.LogDir, jobId))
+		_, setByPlugin := env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.DumpDir, jobId))
 		if setByPlugin {
 			env.Set(ctx, plugin.EnvLogDirSetByPlugin, "1")
 		}
 	}
-	env.SetIfMissing(ctx, "NCCL_INSPECTOR_PROM_DUMP", "0")
-	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS", "1000000")
-	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_VERBOSE", "1")
+	env.SetIfMissing(ctx, "NCCL_INSPECTOR_PROM_DUMP", arg.FormatBoolValue(config.PromDump))
+	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_VERBOSE", arg.FormatBoolValue(config.DumpVerbose))
+	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS", config.DumpThreadIntervalMicroseconds)
 
 	return C.ESPANK_SUCCESS
 }
@@ -113,7 +113,7 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 
 	ensureDumpDir := func() error {
 		if logDirSetByPlugin(ctx) {
-			dumpDir := arg.SubstituteJobStepId(config.LogDir, jobId, stepId)
+			dumpDir := arg.SubstituteJobStepId(config.DumpDir, jobId, stepId)
 			env.Set(ctx, "NCCL_INSPECTOR_DUMP_DIR", dumpDir)
 		}
 
@@ -138,9 +138,9 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 			return nil
 		}
 
-		inspectorSO, found := env.Get(ctx, "NCCL_PROFILER_PLUGIN")
-		if !found || inspectorSO == "" {
-			inspectorSO = config.InspectorSO
+		profilerPlugin, found := env.Get(ctx, "NCCL_PROFILER_PLUGIN")
+		if !found || profilerPlugin == "" {
+			profilerPlugin = config.ProfilerPlugin
 		}
 
 		dumpDir, found := env.Get(ctx, "NCCL_INSPECTOR_DUMP_DIR")
@@ -152,7 +152,7 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 			jobId,
 			stepId,
 			[]enroot.Mount{{
-				Path:        inspectorSO,
+				Path:        profilerPlugin,
 				IsDir:       false,
 				IsReadWrite: false,
 			}, {

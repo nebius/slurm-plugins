@@ -88,6 +88,14 @@ func ParseStringValue(value string) (string, error) {
 	return value, nil
 }
 
+func FormatBoolValue(value bool) string {
+	if value {
+		return "1"
+	}
+
+	return "0"
+}
+
 func ParseByName(config *cfg.Config, name, value string) error {
 	for _, definedArg := range Args {
 		if definedArg.Name == name {

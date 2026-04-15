@@ -7,15 +7,21 @@ import (
 )
 
 type Config struct {
-	Enabled     bool
-	InspectorSO string
-	LogDir      string
+	Enabled                        bool
+	ProfilerPlugin                 string
+	PromDump                       bool
+	DumpDir                        string
+	DumpVerbose                    bool
+	DumpThreadIntervalMicroseconds string
 }
 
 func NewConfig() *Config {
 	return &Config{
-		Enabled:     true,
-		InspectorSO: fmt.Sprintf("/usr/lib/%s/libnccl-profiler-inspector.so", unix.LibArch()),
-		LogDir:      "/opt/soperator-outputs/nccl_profiles",
+		Enabled:                        true,
+		ProfilerPlugin:                 fmt.Sprintf("/usr/lib/%s/libnccl-profiler-inspector.so", unix.LibArch()),
+		PromDump:                       false,
+		DumpDir:                        "/opt/soperator-outputs/nccl_profiles",
+		DumpVerbose:                    true,
+		DumpThreadIntervalMicroseconds: "1000000",
 	}
 }

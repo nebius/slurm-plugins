@@ -26,8 +26,8 @@ var (
 			},
 		),
 		NewStringArg(
-			"inspector-so",
-			"path to the NCCL Inspector SO file.",
+			"profiler-plugin",
+			"path to the NCCL Inspector profiler plugin SO file.",
 			PathValueInfo,
 			func(config *cfg.Config, value string) error {
 				parsed, err := ParseStringValue(value)
@@ -35,12 +35,12 @@ var (
 					return err
 				}
 
-				config.InspectorSO = parsed
+				config.ProfilerPlugin = parsed
 				return nil
 			},
 		),
 		NewStringArg(
-			"out-dir",
+			"dump-dir",
 			strings.Join(
 				[]string{
 					"path to the directory for storing NCCL Inspector outputs.",
@@ -60,7 +60,47 @@ var (
 					return err
 				}
 
-				config.LogDir = parsed
+				config.DumpDir = parsed
+				return nil
+			},
+		),
+		NewBoolArg(
+			"prom-dump",
+			"whether to enable NCCL Inspector Prometheus dump output.",
+			func(config *cfg.Config, value string) error {
+				parsed, err := ParseBoolValue(value)
+				if err != nil {
+					return err
+				}
+
+				config.PromDump = parsed
+				return nil
+			},
+		),
+		NewBoolArg(
+			"dump-verbose",
+			"whether to enable verbose NCCL Inspector dumps.",
+			func(config *cfg.Config, value string) error {
+				parsed, err := ParseBoolValue(value)
+				if err != nil {
+					return err
+				}
+
+				config.DumpVerbose = parsed
+				return nil
+			},
+		),
+		NewStringArg(
+			"dump-thread-interval-microseconds",
+			"interval between NCCL Inspector dump thread runs in microseconds.",
+			"UINT",
+			func(config *cfg.Config, value string) error {
+				parsed, err := ParseStringValue(value)
+				if err != nil {
+					return err
+				}
+
+				config.DumpThreadIntervalMicroseconds = parsed
 				return nil
 			},
 		),

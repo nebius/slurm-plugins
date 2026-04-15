@@ -5,8 +5,11 @@
 #include <stddef.h>
 
 static int spank_option_enabled(int val, const char *optarg, int remote);
-static int spank_option_inspector_so(int val, const char *optarg, int remote);
-static int spank_option_out_dir(int val, const char *optarg, int remote);
+static int spank_option_profiler_plugin(int val, const char *optarg, int remote);
+static int spank_option_dump_dir(int val, const char *optarg, int remote);
+static int spank_option_prom_dump(int val, const char *optarg, int remote);
+static int spank_option_dump_verbose(int val, const char *optarg, int remote);
+static int spank_option_dump_thread_interval_microseconds(int val, const char *optarg, int remote);
 
 
 /// SPANK plugin option table.
@@ -20,20 +23,44 @@ struct spank_option spank_opts[] = {
         .cb      = spank_option_enabled,
     },
     {
-        .name    = "snccliprecon-inspector-so",
+        .name    = "snccliprecon-profiler-plugin",
         .arginfo = "PATH",
-        .usage   = "[nccl_inspector_preconf] path to the NCCL Inspector SO file. SNCCLIPRECON_INSPECTOR_SO env var is also supported.",
+        .usage   = "[nccl_inspector_preconf] path to the NCCL Inspector profiler plugin SO file. SNCCLIPRECON_PROFILER_PLUGIN env var is also supported.",
         .has_arg = true,
         .val     = 0,
-        .cb      = spank_option_inspector_so,
+        .cb      = spank_option_profiler_plugin,
     },
     {
-        .name    = "snccliprecon-out-dir",
+        .name    = "snccliprecon-dump-dir",
         .arginfo = "PATH",
-        .usage   = "[nccl_inspector_preconf] path to the directory for storing NCCL Inspector outputs. Supports %j, %s, and %J substitutions for <job ID>, <step ID> and <job ID>.<step ID> accordingly. SNCCLIPRECON_OUT_DIR env var is also supported.",
+        .usage   = "[nccl_inspector_preconf] path to the directory for storing NCCL Inspector outputs. Supports %j, %s, and %J substitutions for <job ID>, <step ID> and <job ID>.<step ID> accordingly. SNCCLIPRECON_DUMP_DIR env var is also supported.",
         .has_arg = true,
         .val     = 0,
-        .cb      = spank_option_out_dir,
+        .cb      = spank_option_dump_dir,
+    },
+    {
+        .name    = "snccliprecon-prom-dump",
+        .arginfo = "(1 | True) | (0 | False)",
+        .usage   = "[nccl_inspector_preconf] whether to enable NCCL Inspector Prometheus dump output. Possible values are case-insensitive. SNCCLIPRECON_PROM_DUMP env var is also supported.",
+        .has_arg = true,
+        .val     = 0,
+        .cb      = spank_option_prom_dump,
+    },
+    {
+        .name    = "snccliprecon-dump-verbose",
+        .arginfo = "(1 | True) | (0 | False)",
+        .usage   = "[nccl_inspector_preconf] whether to enable verbose NCCL Inspector dumps. Possible values are case-insensitive. SNCCLIPRECON_DUMP_VERBOSE env var is also supported.",
+        .has_arg = true,
+        .val     = 0,
+        .cb      = spank_option_dump_verbose,
+    },
+    {
+        .name    = "snccliprecon-dump-thread-interval-microseconds",
+        .arginfo = "UINT",
+        .usage   = "[nccl_inspector_preconf] interval between NCCL Inspector dump thread runs in microseconds. SNCCLIPRECON_DUMP_THREAD_INTERVAL_MICROSECONDS env var is also supported.",
+        .has_arg = true,
+        .val     = 0,
+        .cb      = spank_option_dump_thread_interval_microseconds,
     },
     SPANK_OPTIONS_TABLE_END
 };
@@ -89,47 +116,116 @@ static int spank_option_enabled(int val, const char *optarg, int remote) {
 }
 
 /**
- * Implementation of inspector-so option registration callback.
+ * Implementation of profiler-plugin option registration callback.
  *
  * @related spank_opt_cb_f
  */
-static int spank_option_inspector_so(int val, const char *optarg, int remote) {
+static int spank_option_profiler_plugin(int val, const char *optarg, int remote) {
     (void)val;
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
         snccliprecon_log_error_fmt(
             "--%s: argument required",
-            "snccliprecon-inspector-so"
+            "snccliprecon-profiler-plugin"
         );
         return ESPANK_BAD_ARG;
     }
 
     return snccliprecon_parse_option(
-        "inspector-so",
+        "profiler-plugin",
         optarg
     );
 }
 
 /**
- * Implementation of out-dir option registration callback.
+ * Implementation of dump-dir option registration callback.
  *
  * @related spank_opt_cb_f
  */
-static int spank_option_out_dir(int val, const char *optarg, int remote) {
+static int spank_option_dump_dir(int val, const char *optarg, int remote) {
     (void)val;
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
         snccliprecon_log_error_fmt(
             "--%s: argument required",
-            "snccliprecon-out-dir"
+            "snccliprecon-dump-dir"
         );
         return ESPANK_BAD_ARG;
     }
 
     return snccliprecon_parse_option(
-        "out-dir",
+        "dump-dir",
+        optarg
+    );
+}
+
+/**
+ * Implementation of prom-dump option registration callback.
+ *
+ * @related spank_opt_cb_f
+ */
+static int spank_option_prom_dump(int val, const char *optarg, int remote) {
+    (void)val;
+    (void)remote;
+
+    if (optarg == NULL || *optarg == '\0') {
+        snccliprecon_log_error_fmt(
+            "--%s: argument required",
+            "snccliprecon-prom-dump"
+        );
+        return ESPANK_BAD_ARG;
+    }
+
+    return snccliprecon_parse_option(
+        "prom-dump",
+        optarg
+    );
+}
+
+/**
+ * Implementation of dump-verbose option registration callback.
+ *
+ * @related spank_opt_cb_f
+ */
+static int spank_option_dump_verbose(int val, const char *optarg, int remote) {
+    (void)val;
+    (void)remote;
+
+    if (optarg == NULL || *optarg == '\0') {
+        snccliprecon_log_error_fmt(
+            "--%s: argument required",
+            "snccliprecon-dump-verbose"
+        );
+        return ESPANK_BAD_ARG;
+    }
+
+    return snccliprecon_parse_option(
+        "dump-verbose",
+        optarg
+    );
+}
+
+/**
+ * Implementation of dump-thread-interval-microseconds option registration callback.
+ *
+ * @related spank_opt_cb_f
+ */
+static int spank_option_dump_thread_interval_microseconds(int val, const char *optarg, int remote) {
+    (void)val;
+    (void)remote;
+
+    if (optarg == NULL || *optarg == '\0') {
+        snccliprecon_log_error_fmt(
+            "--%s: argument required",
+            "snccliprecon-dump-thread-interval-microseconds"
+        );
+        return ESPANK_BAD_ARG;
+    }
+
+    return snccliprecon_parse_option(
+        "dump-thread-interval-microseconds",
         optarg
     );
 }
