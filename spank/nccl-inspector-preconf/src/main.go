@@ -77,6 +77,10 @@ func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.
 		return C.ESPANK_SUCCESS
 	}
 
+	if err := unix.EnsureDir(plugin.TmpDirBase); err != nil {
+		return C.ESPANK_ERROR
+	}
+
 	failFast, spankRCIfFailFast, jobId, _, _ := ensureOncePerWorker(spank, plugin.LockNameOpUserInit)
 	if failFast {
 		return spankRCIfFailFast
