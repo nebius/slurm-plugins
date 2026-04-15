@@ -21,6 +21,9 @@ func WithLock(path string, fn func() error) error {
 		return err
 	}
 	defer lockFile.Close()
+	defer func() {
+		_ = os.Remove(lockPath)
+	}()
 
 	if err = EnsureMode(lockPath); err != nil {
 		return err
