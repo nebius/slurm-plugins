@@ -7,9 +7,11 @@ import (
 )
 
 const (
+	// DefaultFileDirMode is the normalized permission mode for plugin files.
 	DefaultFileDirMode = os.FileMode(0o777)
 )
 
+// EnsureMode normalizes path permissions to DefaultFileDirMode.
 func EnsureMode(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {

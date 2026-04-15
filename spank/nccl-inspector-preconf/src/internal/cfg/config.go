@@ -6,6 +6,7 @@ import (
 	"github.com/nebius/nccl-inspector-preconf/internal/unix"
 )
 
+// Config stores all plugin settings after plugstack and environment parsing.
 type Config struct {
 	Enabled                        bool
 	ProfilerPlugin                 string
@@ -15,6 +16,7 @@ type Config struct {
 	DumpThreadIntervalMicroseconds string
 }
 
+// NewConfig returns the default plugin configuration.
 func NewConfig() *Config {
 	return &Config{
 		Enabled:                        true,

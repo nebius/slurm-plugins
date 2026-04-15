@@ -7,6 +7,7 @@ import (
 	"github.com/nebius/nccl-inspector-preconf/internal/plugin"
 )
 
+// GetArgNameForEnv renders the environment variable name for one argument.
 func GetArgNameForEnv(name string) string {
 	return strings.ReplaceAll(
 		fmt.Sprintf(

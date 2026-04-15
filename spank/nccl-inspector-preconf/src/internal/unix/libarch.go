@@ -5,6 +5,7 @@ import (
 	"runtime"
 )
 
+// LibArch returns the GNU triplet architecture component used in library paths.
 func LibArch() string {
 	var res string
 

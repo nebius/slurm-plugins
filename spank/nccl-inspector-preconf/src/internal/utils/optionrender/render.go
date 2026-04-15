@@ -107,6 +107,7 @@ static int {{ .Callback }}(int val, const char *optarg, int remote) {
 {{ end }}
 `))
 
+// Render writes the generated SPANK options C source to w.
 func Render(w io.Writer) error {
 	return renderTemplate.Execute(w, templateData{
 		Prefix: plugin.Prefix,
@@ -114,6 +115,7 @@ func Render(w io.Writer) error {
 	})
 }
 
+// RenderString returns the generated SPANK options C source as a string.
 func RenderString() (string, error) {
 	var buffer bytes.Buffer
 	if err := Render(&buffer); err != nil {
@@ -123,6 +125,7 @@ func RenderString() (string, error) {
 	return buffer.String(), nil
 }
 
+// makeTemplateArgs converts Go argument definitions into template input.
 func makeTemplateArgs(args []arg.Arg) []templateArg {
 	rendered := make([]templateArg, 0, len(args))
 	for _, current := range args {
@@ -141,6 +144,7 @@ func makeTemplateArgs(args []arg.Arg) []templateArg {
 	return rendered
 }
 
+// renderBool renders a C boolean literal.
 func renderBool(value bool) string {
 	if value {
 		return "true"
@@ -149,11 +153,13 @@ func renderBool(value bool) string {
 	return "false"
 }
 
+// renderCallbackName renders the C callback symbol for one argument.
 func renderCallbackName(name string) string {
 	replacer := strings.NewReplacer("-", "_", ".", "_")
 	return fmt.Sprintf("spank_option_%s", replacer.Replace(name))
 }
 
+// cString renders a Go string as a C string literal.
 func cString(value string) string {
 	var builder strings.Builder
 	builder.Grow(len(value) + 2)

@@ -4,6 +4,7 @@ import (
 	"os"
 )
 
+// DirExists reports whether path exists and is a directory.
 func DirExists(path string) bool {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -13,6 +14,7 @@ func DirExists(path string) bool {
 	return info.IsDir()
 }
 
+// EnsureDir creates path if needed and normalizes its permissions.
 func EnsureDir(path string) error {
 	if !DirExists(path) {
 		if err := os.MkdirAll(path, DefaultFileDirMode); err != nil {

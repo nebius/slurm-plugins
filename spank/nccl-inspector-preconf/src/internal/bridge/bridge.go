@@ -14,10 +14,12 @@ import (
 
 // region Context
 
+// SpankContext wraps a raw spank_t handle for Go code.
 type SpankContext struct {
 	raw unsafe.Pointer
 }
 
+// NewSpankContext wraps a raw SPANK pointer for bridge helpers.
 func NewSpankContext(raw unsafe.Pointer) SpankContext {
 	return SpankContext{raw: raw}
 }
@@ -26,6 +28,7 @@ func NewSpankContext(raw unsafe.Pointer) SpankContext {
 
 // region Env
 
+// Get reads one SPANK environment variable.
 func (context SpankContext) Get(key string) (string, bool) {
 	cKey := C.CString(key)
 	defer C.free(unsafe.Pointer(cKey))
@@ -48,6 +51,7 @@ func (context SpankContext) Get(key string) (string, bool) {
 	return string(buffer[:length]), true
 }
 
+// Set writes one SPANK environment variable.
 func (context SpankContext) Set(key, value string) bool {
 	cKey := C.CString(key)
 	defer C.free(unsafe.Pointer(cKey))
@@ -66,6 +70,7 @@ func (context SpankContext) Set(key, value string) bool {
 
 // region Job
 
+// GetJobId returns the current Slurm job ID as a string.
 func (context SpankContext) GetJobId() string {
 	retrieve := func() uint32 {
 		var jobID C.uint32_t
@@ -83,6 +88,7 @@ func (context SpankContext) GetJobId() string {
 	return fmt.Sprintf("%d", retrieve())
 }
 
+// GetStepId returns the current Slurm step ID as a string.
 func (context SpankContext) GetStepId() string {
 	retrieve := func() uint32 {
 		var stepID C.uint32_t
@@ -100,6 +106,7 @@ func (context SpankContext) GetStepId() string {
 	return fmt.Sprintf("%d", retrieve())
 }
 
+// GetSbatchScriptID returns Slurm's batch-script sentinel step ID.
 func GetSbatchScriptID() string {
 	var stepID C.uint32_t = C.snccliprecon_slurm_batch_script_id
 	return fmt.Sprintf("%d", uint32(stepID))
@@ -109,6 +116,7 @@ func GetSbatchScriptID() string {
 
 // region Log
 
+// Log emits an informational SPANK log message.
 func Log(msg string) {
 	cString := C.CString(msg)
 	defer C.free(unsafe.Pointer(cString))
@@ -116,6 +124,7 @@ func Log(msg string) {
 	C.snccliprecon_log(cString)
 }
 
+// LogError emits an error SPANK log message.
 func LogError(msg string) {
 	cString := C.CString(msg)
 	defer C.free(unsafe.Pointer(cString))
@@ -127,6 +136,7 @@ func LogError(msg string) {
 
 // region Utils
 
+// CStringArrayToStrings converts a C argv-style array into Go strings.
 func CStringArrayToStrings(argc int, argv unsafe.Pointer) []string {
 	if argc == 0 || argv == nil {
 		return nil

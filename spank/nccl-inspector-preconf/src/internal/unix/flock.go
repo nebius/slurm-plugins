@@ -8,6 +8,7 @@ import (
 
 var ErrLockExists = errors.New("lock already exists")
 
+// WithLock runs fn under an advisory flock on path+".lock".
 func WithLock(path string, fn func() error) error {
 	lockPath := path + ".lock"
 
@@ -39,6 +40,7 @@ func WithLock(path string, fn func() error) error {
 	return fn()
 }
 
+// CreateLock creates a durable lock file at path+".lock".
 func CreateLock(path string) error {
 	lockPath := path + ".lock"
 
@@ -62,6 +64,7 @@ func CreateLock(path string) error {
 	return lockFile.Close()
 }
 
+// RemoveLock removes a durable lock file at path+".lock".
 func RemoveLock(path string) error {
 	lockPath := path + ".lock"
 

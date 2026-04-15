@@ -11,9 +11,11 @@ import (
 )
 
 const (
+	// MountsDir is Enroot's system mount directory.
 	MountsDir = "/etc/enroot/mounts.d"
 )
 
+// mountFilePath renders the Enroot mount file path for one job step.
 func mountFilePath(jobID, stepID string) string {
 	return filepath.Join(
 		MountsDir,
@@ -21,12 +23,14 @@ func mountFilePath(jobID, stepID string) string {
 	)
 }
 
+// Mount describes one bind mount to be written into an Enroot fstab file.
 type Mount struct {
 	Path        string
 	IsDir       bool
 	IsReadWrite bool
 }
 
+// CreateMountFile creates or reuses the mount file for one job step.
 func CreateMountFile(jobID, stepID string, mounts []Mount) error {
 	path := mountFilePath(jobID, stepID)
 
@@ -73,6 +77,7 @@ func CreateMountFile(jobID, stepID string, mounts []Mount) error {
 	})
 }
 
+// RemoveMountFile removes the mount file for one job step.
 func RemoveMountFile(jobID, stepID string) error {
 	path := mountFilePath(jobID, stepID)
 

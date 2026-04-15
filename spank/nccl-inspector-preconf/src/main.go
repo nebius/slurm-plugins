@@ -22,9 +22,12 @@ import (
 )
 
 var (
+	// config stores plugin settings parsed from plugstack args and env vars.
 	config = cfg.NewConfig()
 )
 
+// snccliprecon_spank_parse_option parses one generated SPANK option callback value.
+//
 //export snccliprecon_spank_parse_option
 //goland:noinspection GoSnakeCaseUsage
 func snccliprecon_spank_parse_option(name *C.char, value *C.char) C.int {
@@ -40,6 +43,8 @@ func snccliprecon_spank_parse_option(name *C.char, value *C.char) C.int {
 	return C.ESPANK_SUCCESS
 }
 
+// snccliprecon_spank_init parses plugin arguments during SPANK init.
+//
 //export snccliprecon_spank_init
 //goland:noinspection GoSnakeCaseUsage
 func snccliprecon_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
@@ -57,6 +62,8 @@ func snccliprecon_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	return C.ESPANK_SUCCESS
 }
 
+// snccliprecon_spank_user_init exports plugin-controlled NCCL Inspector env vars.
+//
 //export snccliprecon_spank_user_init
 //goland:noinspection GoSnakeCaseUsage
 func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
@@ -90,6 +97,8 @@ func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.
 	return C.ESPANK_SUCCESS
 }
 
+// snccliprecon_spank_task_init_privileged prepares dump directories and Enroot mounts.
+//
 //export snccliprecon_spank_task_init_privileged
 //goland:noinspection GoSnakeCaseUsage
 func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C.int {
@@ -172,6 +181,8 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 	return C.ESPANK_SUCCESS
 }
 
+// snccliprecon_spank_task_exit removes per-step Enroot mounts and worker locks.
+//
 //export snccliprecon_spank_task_exit
 //goland:noinspection GoSnakeCaseUsage
 func snccliprecon_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
@@ -210,6 +221,7 @@ func snccliprecon_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.
 	return C.ESPANK_SUCCESS
 }
 
+// ensureOncePerWorker prevents one hook from running more than once per worker.
 func ensureOncePerWorker(spank C.spank_t, op string) (failFast bool, spankRCIfFailFast C.int, jobId, stepId, hostname string) {
 	failFast = false
 	spankRCIfFailFast = C.ESPANK_SUCCESS
@@ -245,9 +257,11 @@ func ensureOncePerWorker(spank C.spank_t, op string) (failFast bool, spankRCIfFa
 	return
 }
 
+// logDirSetByPlugin reports whether the dump dir env var was set by this plugin.
 func logDirSetByPlugin(ctx bridge.SpankContext) bool {
 	value, found := env.Get(ctx, plugin.EnvLogDirSetByPlugin)
 	return found && value == "1"
 }
 
+// main is required for the Go main package but is unused in the built plugin.
 func main() {}

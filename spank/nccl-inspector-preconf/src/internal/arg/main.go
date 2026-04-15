@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	// Args is the canonical list of supported plugin arguments.
 	Args = []Arg{
 		NewBoolArg(
 			"enabled",

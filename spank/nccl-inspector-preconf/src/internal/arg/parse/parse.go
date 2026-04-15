@@ -10,11 +10,13 @@ import (
 	"github.com/nebius/nccl-inspector-preconf/internal/log"
 )
 
+// ParseArgs parses plugin arguments from both plugstack args and SPANK env.
 func ParseArgs(config *cfg.Config, spank bridge.SpankContext, passedArgs []string) {
 	ParseArgsFromPlugstack(config, passedArgs)
 	ParseArgsFromEnv(config, spank)
 }
 
+// ParseArgsFromPlugstack parses args passed directly in plugstack configuration.
 func ParseArgsFromPlugstack(config *cfg.Config, passedArgs []string) {
 	for _, passedArg := range passedArgs {
 		recognized := false
@@ -35,6 +37,7 @@ func ParseArgsFromPlugstack(config *cfg.Config, passedArgs []string) {
 	}
 }
 
+// ParseArgsFromEnv parses args exported through SPANK environment variables.
 func ParseArgsFromEnv(config *cfg.Config, spank bridge.SpankContext) {
 	for _, definedArg := range arg.Args {
 		var (
