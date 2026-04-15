@@ -23,6 +23,4 @@ int slurm_spank_task_exit(spank_t spank, int argc, char **argv) {
   return snccliprecon_spank_task_exit(spank, argc, argv);
 }
 
-int slurm_spank_exit(spank_t spank, int argc, char **argv) {
-  return snccliprecon_spank_exit(spank, argc, argv);
-}
+uint32_t snccliprecon_slurm_batch_script_id = (uint32_t)(0xfffffffb);

@@ -14,8 +14,10 @@ func DirExists(path string) bool {
 }
 
 func EnsureDir(path string) error {
-	if err := os.MkdirAll(path, DefaultFileDirMode); err != nil {
-		return err
+	if !DirExists(path) {
+		if err := os.MkdirAll(path, DefaultFileDirMode); err != nil {
+			return err
+		}
 	}
 
 	return EnsureMode(path)

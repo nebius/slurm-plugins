@@ -100,6 +100,11 @@ func (context SpankContext) GetStepId() string {
 	return fmt.Sprintf("%d", retrieve())
 }
 
+func GetSbatchScriptID() string {
+	var stepID C.uint32_t = C.snccliprecon_slurm_batch_script_id
+	return fmt.Sprintf("%d", uint32(stepID))
+}
+
 // endregion Job
 
 // region Log

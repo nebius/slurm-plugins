@@ -7,6 +7,7 @@ package main
 */
 import "C"
 import (
+	"errors"
 	"unsafe"
 
 	"github.com/nebius/nccl-inspector-preconf/internal/arg"
@@ -22,7 +23,6 @@ import (
 
 var (
 	config = cfg.NewConfig()
-	state  = plugin.NewState()
 )
 
 //export snccliprecon_spank_parse_option
@@ -70,17 +70,18 @@ func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.
 		return C.ESPANK_SUCCESS
 	}
 
-	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
-	jobId := ctx.GetJobId()
-
-	{
-		inspectorSO, _ := env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.InspectorSO)
-		state.InspectorSO = inspectorSO
+	failFast, spankRCIfFailFast, jobId, _, _ := ensureOncePerWorker(spank, plugin.LockNameOpUserInit)
+	if failFast {
+		return spankRCIfFailFast
 	}
+	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+
+	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.InspectorSO)
 	{
-		dumpDir, setByPlugin := env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.LogDir, jobId))
-		state.LogDir = dumpDir
-		state.LogDirSetByPlugin = setByPlugin
+		_, setByPlugin := env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.LogDir, jobId))
+		if setByPlugin {
+			env.Set(ctx, plugin.EnvLogDirSetByPlugin, "1")
+		}
 	}
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_PROM_DUMP", "0")
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS", "1000000")
@@ -102,19 +103,24 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 		return C.ESPANK_SUCCESS
 	}
 
+	failFast, spankRCIfFailFast, jobId, stepId, _ := ensureOncePerWorker(spank, plugin.LockNameOpTaskInitPrivileged)
+	if failFast {
+		return spankRCIfFailFast
+	}
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
-	jobId := ctx.GetJobId()
-	stepId := ctx.GetStepId()
 
 	// region Ensure dump dir
 
 	ensureDumpDir := func() error {
-		if !state.LogDirSetByPlugin {
-			return nil
+		if logDirSetByPlugin(ctx) {
+			dumpDir := arg.SubstituteJobStepId(config.LogDir, jobId, stepId)
+			env.Set(ctx, "NCCL_INSPECTOR_DUMP_DIR", dumpDir)
 		}
 
-		dumpDir := arg.SubstituteJobStepId(config.LogDir, jobId, stepId)
-		env.Set(ctx, "NCCL_INSPECTOR_DUMP_DIR", dumpDir)
+		dumpDir, found := env.Get(ctx, "NCCL_INSPECTOR_DUMP_DIR")
+		if !found || dumpDir == "" {
+			return nil
+		}
 
 		return unix.EnsureDir(dumpDir)
 	}
@@ -132,15 +138,25 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 			return nil
 		}
 
+		inspectorSO, found := env.Get(ctx, "NCCL_PROFILER_PLUGIN")
+		if !found || inspectorSO == "" {
+			inspectorSO = config.InspectorSO
+		}
+
+		dumpDir, found := env.Get(ctx, "NCCL_INSPECTOR_DUMP_DIR")
+		if !found || dumpDir == "" {
+			return nil
+		}
+
 		return enroot.CreateMountFile(
 			jobId,
 			stepId,
 			[]enroot.Mount{{
-				Path:        state.InspectorSO,
+				Path:        inspectorSO,
 				IsDir:       false,
 				IsReadWrite: false,
 			}, {
-				Path:        state.LogDir,
+				Path:        dumpDir,
 				IsDir:       true,
 				IsReadWrite: true,
 			}},
@@ -169,30 +185,69 @@ func snccliprecon_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.
 		return C.ESPANK_SUCCESS
 	}
 
-	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+	failFast, spankRCIfFailFast, jobId, stepId, hostname := ensureOncePerWorker(spank, plugin.LockNameOpTaskExit)
+	if failFast {
+		return spankRCIfFailFast
+	}
 
-	if err := enroot.RemoveMountFile(ctx.GetJobId(), ctx.GetStepId()); err != nil {
+	if err := enroot.RemoveMountFile(jobId, stepId); err != nil {
 		log.Error(err.Error())
 		return C.ESPANK_ERROR
+	}
+
+	{
+		_ = unix.RemoveLock(
+			plugin.RenderWorkerOpLockName(jobId, stepId, hostname, plugin.LockNameOpUserInit),
+		)
+		_ = unix.RemoveLock(
+			plugin.RenderWorkerOpLockName(jobId, stepId, hostname, plugin.LockNameOpTaskInitPrivileged),
+		)
+		_ = unix.RemoveLock(
+			plugin.RenderWorkerOpLockName(jobId, stepId, hostname, plugin.LockNameOpTaskExit),
+		)
 	}
 
 	return C.ESPANK_SUCCESS
 }
 
-//export snccliprecon_spank_exit
-//goland:noinspection GoSnakeCaseUsage
-func snccliprecon_spank_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
-	_, _, _ = spank, argc, argv
+func ensureOncePerWorker(spank C.spank_t, op string) (failFast bool, spankRCIfFailFast C.int, jobId, stepId, hostname string) {
+	failFast = false
+	spankRCIfFailFast = C.ESPANK_SUCCESS
 
-	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
-		return C.ESPANK_SUCCESS
+	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+	jobId = ctx.GetJobId()
+
+	stepId = ctx.GetStepId()
+	if stepId == bridge.GetSbatchScriptID() {
+		failFast = true
+		return
 	}
 
-	if !config.Enabled {
-		return C.ESPANK_SUCCESS
+	hostname = unix.GetHostname()
+
+	// Ensure hook ran once per worker.
+	{
+		if err := unix.CreateLock(
+			plugin.RenderWorkerOpLockName(jobId, stepId, hostname, op),
+		); err != nil {
+			if errors.Is(err, unix.ErrLockExists) {
+				failFast = true
+				return
+			}
+
+			log.Message(err.Error())
+			failFast = true
+			spankRCIfFailFast = C.ESPANK_ERROR
+			return
+		}
 	}
 
-	return C.ESPANK_SUCCESS
+	return
+}
+
+func logDirSetByPlugin(ctx bridge.SpankContext) bool {
+	value, found := env.Get(ctx, plugin.EnvLogDirSetByPlugin)
+	return found && value == "1"
 }
 
 func main() {}
