@@ -1,0 +1,3 @@
+build
+src/vendor
+cmake-build-debug
