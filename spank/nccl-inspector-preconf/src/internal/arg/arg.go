@@ -2,6 +2,7 @@ package arg
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/nebius/nccl-inspector-preconf/internal/cfg"
@@ -92,6 +93,19 @@ func ParseBoolValue(value string) (bool, error) {
 func ParseStringValue(value string) (string, error) {
 	if len(value) == 0 {
 		return "", fmt.Errorf("invalid string value %q", value)
+	}
+
+	return value, nil
+}
+
+// ParseUintValue validates an unsigned integer argument and preserves its string form.
+func ParseUintValue(value string) (string, error) {
+	if len(value) == 0 {
+		return "", fmt.Errorf("invalid uint value %q", value)
+	}
+
+	if _, err := strconv.ParseUint(value, 10, 64); err != nil {
+		return "", fmt.Errorf("invalid uint value %q: %w", value, err)
 	}
 
 	return value, nil

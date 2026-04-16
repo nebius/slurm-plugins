@@ -96,7 +96,7 @@ var (
 			"interval between NCCL Inspector dump thread runs in microseconds.",
 			"UINT",
 			func(config *cfg.Config, value string) error {
-				parsed, err := ParseStringValue(value)
+				parsed, err := ParseUintValue(value)
 				if err != nil {
 					return err
 				}
