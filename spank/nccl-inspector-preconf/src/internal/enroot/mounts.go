@@ -42,7 +42,7 @@ func CreateMountFile(jobID, stepID string, mounts []Mount) error {
 		}
 
 		mountLines := make([]string, len(mounts))
-		for _, mount := range mounts {
+		for i, mount := range mounts {
 			create := "x-create=file"
 			if mount.IsDir {
 				create = "x-create=dir"
@@ -53,15 +53,12 @@ func CreateMountFile(jobID, stepID string, mounts []Mount) error {
 				permissions = "rw"
 			}
 
-			mountLines = append(
-				mountLines,
-				fmt.Sprintf(
-					"%s %s none %s,bind,%s 0 0\n",
-					mount.Path,
-					mount.Path,
-					create,
-					permissions,
-				),
+			mountLines[i] = fmt.Sprintf(
+				"%s %s none %s,bind,%s 0 0\n",
+				mount.Path,
+				mount.Path,
+				create,
+				permissions,
 			)
 		}
 
