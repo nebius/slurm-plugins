@@ -77,15 +77,8 @@ func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.
 		return C.ESPANK_SUCCESS
 	}
 
-	if err := unix.EnsureDir(plugin.TmpDirBase); err != nil {
-		return C.ESPANK_ERROR
-	}
-
-	failFast, spankRCIfFailFast, jobId, _, _ := ensureOncePerWorker(spank, plugin.LockNameOpUserInit)
-	if failFast {
-		return spankRCIfFailFast
-	}
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+	jobId := ctx.GetJobId()
 
 	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.ProfilerPlugin)
 	{
@@ -116,11 +109,12 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 		return C.ESPANK_SUCCESS
 	}
 
-	failFast, spankRCIfFailFast, jobId, stepId, _ := ensureOncePerWorker(spank, plugin.LockNameOpTaskInitPrivileged)
-	if failFast {
-		return spankRCIfFailFast
-	}
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+	jobId := ctx.GetJobId()
+	stepId := ctx.GetStepId()
+	if stepId == bridge.GetSbatchScriptID() {
+		return C.ESPANK_SUCCESS
+	}
 
 	// region Ensure dump dir
 
@@ -175,6 +169,15 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 			}},
 		)
 	}
+	if err := unix.EnsureDir(plugin.TmpDirBase); err != nil {
+		return C.ESPANK_ERROR
+	}
+
+	failFast, spankRCIfFailFast, _, _, _ := ensureOncePerWorker(spank, plugin.LockNameOpTaskInitPrivileged)
+	if failFast {
+		return spankRCIfFailFast
+	}
+
 	if err := ensureEnrootMount(); err != nil {
 		log.Error(err.Error())
 		return C.ESPANK_ERROR
