@@ -1,9 +1,15 @@
+ARG SLURM_VERSION
+ARG IMAGE_DAYTIME
+# Or arm64
+ARG ARCH="amd64"
+
 # Or `debug`
 ARG MODE=release
 ARG PLUGIN_NAME
 
-arg BASE_IMAGE
-FROM ${BASE_IMAGE} AS builder
+FROM cr.eu-north1.nebius.cloud/ml-containers/slurm:${SLURM_VERSION}-${IMAGE_DAYTIME}-${ARCH} AS builder
+
+RUN apt install -y --no-install-recommends golang-1.23
 
 ARG PLUGIN_NAME
 
@@ -13,12 +19,13 @@ SHELL ["/bin/bash", "-c"]
 
 ENV CGO_ENABLED=1
 ENV GO111MODULE=on
+ENV PATH="$PATH:/usr/lib/go-1.23/bin"
 
 FROM builder AS build-release
 ARG PLUGIN_NAME
 ENV PLUGIN_NAME=${PLUGIN_NAME}
 CMD test -f go.mod && \
-    export CGO_CFLAGS="-O3 -DNDEBUG -fPIC -Wall -Wextra -I/usr/include" && \
+    export CGO_CFLAGS="-O3 -fPIC -Wall -Wextra -Wno-unused-parameter -I/usr/include" && \
     export CGO_LDFLAGS="" && \
     go build \
         -buildmode=c-shared \

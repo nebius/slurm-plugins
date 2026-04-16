@@ -1,3 +1,3 @@
 module github.com/nebius/nccl-inspector-preconf
 
-go 1.25.2
+go 1.23
