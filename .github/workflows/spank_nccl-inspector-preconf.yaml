@@ -1,0 +1,177 @@
+name: Build NCCL Inspector Pre-Conf
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Arch ${{ matrix.arch }} / Slurm ${{ matrix.slurm_version }}
+    permissions:
+      contents: read
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ['amd64', 'arm64']
+        slurm_version:
+          - '25.05.6'
+          - '25.11.2'
+          - '25.11.3'
+          - '25.11.4'
+          - '25.11.5'
+
+        include:
+          - slurm_version: '25.05.6'
+            image_daytime: '20260421092341'
+          - slurm_version: '25.11.2'
+            image_daytime: '20260220131744'
+          - slurm_version: '25.11.3'
+            image_daytime: '20260324153054'
+          - slurm_version: '25.11.4'
+            image_daytime: '20260407133055'
+          - slurm_version: '25.11.5'
+            image_daytime: '20260421092341'
+
+          - arch: 'amd64'
+            platform: 'linux/amd64'
+            runner: 'ubuntu-24.04'
+            deb_arch: 'x86_64'
+          - arch: 'arm64'
+            platform: 'linux/arm64'
+            runner: 'ubuntu-24.04-arm'
+            deb_arch: 'aarch64'
+
+          - distribution: 'ubuntu24.04'
+          - deb_release: 1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+
+      - name: Build docker image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: spank/nccl-inspector-preconf
+          file: spank/nccl-inspector-preconf/Dockerfile
+          push: false
+          tags: nccl_inspector_preconf_builder:slurm_${{ matrix.slurm_version }}_${{ matrix.distribution }}_${{ matrix.deb_release }}
+          platforms: ${{ matrix.platform }}
+          load: true
+          build-args: |
+            SLURM_VERSION=${{ matrix.slurm_version }}
+            IMAGE_DAYTIME=${{ matrix.image_daytime }}
+            PLUGIN_NAME=spank_nccl_inspector_preconf
+            DEB_RELEASE=${{ matrix.deb_release }}
+            DEB_ARCH=${{ matrix.deb_arch }}
+            ARCH=${{ matrix.arch }}
+
+      - name: Create artifacts directory
+        # language=bash
+        run: |
+          mkdir -p artifacts
+
+      - name: Copy build artifacts from container
+        # language=bash
+        run: |
+          container_id=$(docker create nccl_inspector_preconf_builder:slurm_${{ matrix.slurm_version }}_${{ matrix.distribution }}_${{ matrix.deb_release }})
+          docker cp "${container_id}:/artifacts/." ./artifacts/
+          docker rm "${container_id}"
+
+      - name: Write build metadata
+        # language=bash
+        run: |
+          cat > "artifacts/metadata-${{ matrix.slurm_version }}-${{ matrix.deb_release }}-${{ matrix.arch }}.json" <<EOF
+          {
+            "arch": "${{ matrix.arch }}",
+            "slurm_version": "${{ matrix.slurm_version }}"
+          }
+          EOF
+
+      - name: Upload release bundle as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spank-nccl-inspector-preconf_slurm${{ matrix.slurm_version }}_deb${{ matrix.deb_release }}_${{ matrix.distribution }}_${{ matrix.arch }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Release DEB ${{ matrix.deb_release }} / ${{ matrix.distribution }}
+    needs: [build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        deb_release: ['1']
+        distribution: ['ubuntu24.04']
+
+    concurrency:
+      group: release-spank-nccl-inspector-preconf-${{ matrix.deb_release }}-${{ matrix.distribution }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Download all build artifacts for this release
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: spank-nccl-inspector-preconf_slurm*_deb${{ matrix.deb_release }}_${{ matrix.distribution }}_*
+          merge-multiple: true
+
+      - name: Show downloaded artifacts
+        # language=bash
+        run: find artifacts -type f -print | sort
+
+      - name: Build release notes
+        # language=bash
+        run: |
+          {
+            echo '| Slurm version | Arch |'
+            echo '| :---: | :---: |'
+            find artifacts -type f -name 'metadata-*.json' -print | sort | while read -r file; do
+              slurm_version=$(jq -r '.slurm_version' "$file")
+              arch=$(jq -r '.arch' "$file")
+
+              printf '| `%s` | `%s` |\n' \
+                "$slurm_version" \
+                "$arch"
+            done
+          } > release_body.md
+
+      - name: Check if release already exists
+        id: rel
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # language=bash
+        run: |
+          tag="spank-nccl-inspector-preconf-${{ matrix.deb_release }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release and upload artifacts
+        if: steps.rel.outputs.exists != 'true'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: spank-nccl-inspector-preconf-${{ matrix.deb_release }}
+          name: SPANK NCCL Inspector Preconf v${{ matrix.deb_release }}
+          body_path: release_body.md
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/*.deb
+            artifacts/*.so
