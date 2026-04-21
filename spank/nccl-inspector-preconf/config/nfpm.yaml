@@ -1,0 +1,45 @@
+name: &pkg spank-nccl-inspector-preconf
+
+arch: ${ARCH}
+platform: linux
+
+version: ${SLURM_VERSION}
+version_schema: none
+release: ${DEB_RELEASE}
+section: libs
+
+vendor: Nebius
+maintainer: Dmitrii Starov <dstaroff@nebius.com>
+
+description: |-
+  Slurm SPANK plugin that prepares NCCL Inspector environment variables before user code starts.
+  
+  The plugin configures NCCL Inspector consistently on worker nodes by:
+
+  - enabling or disabling the plugin per job
+  - setting `NCCL_PROFILER_PLUGIN`
+  - setting `NCCL_INSPECTOR_DUMP_DIR`
+  - setting `NCCL_INSPECTOR_PROM_DUMP`
+  - setting `NCCL_INSPECTOR_DUMP_VERBOSE`
+  - setting `NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS`
+  - expanding Slurm placeholders in the dump directory
+  - creating the dump directory with permissive permissions
+  - creating an Enroot mount file so the profiler plugin and dump directory are visible inside containers
+
+  The plugin also guards selected hooks so they run only once per worker host for a given job step.
+homepage: https://github.com/nebius/slurm-plugins/tree/main/spank/nccl-inspector-preconf
+license: GPL-3.0
+
+provides:
+  - *pkg
+
+contents:
+  - src: spank_nccl_inspector_preconf.so
+    dst: /usr/lib/${LIB_ARCH}-linux-gnu/slurm/spank_nccl_inspector_preconf.so
+    expand: true
+
+  - src: copyright
+    dst: /usr/share/doc/spank-nccl-inspector-preconf/copyright
+
+  - src: README.md
+    dst: /usr/share/doc/spank-nccl-inspector-preconf/README.md

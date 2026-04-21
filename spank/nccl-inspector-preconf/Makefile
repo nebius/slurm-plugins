@@ -26,7 +26,7 @@ PLUGIN_NAME := spank_nccl_inspector_preconf
 PLUGIN_SO := $(BUILD_DIR)/$(PLUGIN_NAME).so
 
 NODE_WORKER_PREFIX ?= worker-h100
-NODE_COUNT_WORKER ?= 8
+NODE_COUNT_WORKER ?= 2
 NODE_COUNT_LOGIN ?= 2
 NODE_RANGE_WORKER := $(shell seq 0 $$(($(NODE_COUNT_WORKER) - 1)))
 NODE_RANGE_LOGIN := $(shell seq 0 $$(($(NODE_COUNT_LOGIN) - 1)))
@@ -43,7 +43,7 @@ $(SLURM_HEADERS_DIR):
 docker-headers: $(SLURM_HEADERS_DIR)
 	@docker build \
 		-t $(DOCKER_HEADERS_IMAGE) \
-		-f docker/headers.dockerfile \
+		-f dev-docker/headers.dockerfile \
 		--platform linux/$(ARCH) \
 		--build-arg ARCH=$(ARCH) \
 		--build-arg SLURM_VERSION=$(SLURM_VERSION) \
@@ -60,7 +60,7 @@ docker-headers: $(SLURM_HEADERS_DIR)
 docker-build: $(BUILD_DIR)
 	@docker build \
 		-t $(DOCKER_BUILDER_IMAGE) \
-		-f docker/builder.dockerfile \
+		-f dev-docker/builder.dockerfile \
 		--platform linux/$(ARCH) \
 		--build-arg ARCH=$(ARCH) \
 		--build-arg SLURM_VERSION=$(SLURM_VERSION) \

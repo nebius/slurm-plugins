@@ -78,6 +78,10 @@ func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.
 	}
 
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+	if !ncclInspectorEnabled(ctx) {
+		return C.ESPANK_SUCCESS
+	}
+
 	jobId := ctx.GetJobId()
 
 	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.ProfilerPlugin)
@@ -110,6 +114,10 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 	}
 
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+	if !ncclInspectorEnabled(ctx) {
+		return C.ESPANK_SUCCESS
+	}
+
 	jobId := ctx.GetJobId()
 	stepId := ctx.GetStepId()
 	if stepId == bridge.GetSbatchScriptID() {
@@ -173,7 +181,7 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 		return C.ESPANK_ERROR
 	}
 
-	failFast, spankRCIfFailFast, _, _, _ := ensureOncePerWorker(spank, plugin.LockNameOpTaskInitPrivileged)
+	failFast, spankRCIfFailFast, _, _, _ := ensureOncePerWorker(ctx, plugin.LockNameOpTaskInitPrivileged)
 	if failFast {
 		return spankRCIfFailFast
 	}
@@ -203,7 +211,12 @@ func snccliprecon_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.
 		return C.ESPANK_SUCCESS
 	}
 
-	failFast, spankRCIfFailFast, jobId, stepId, hostname := ensureOncePerWorker(spank, plugin.LockNameOpTaskExit)
+	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
+	if !ncclInspectorEnabled(ctx) {
+		return C.ESPANK_SUCCESS
+	}
+
+	failFast, spankRCIfFailFast, jobId, stepId, hostname := ensureOncePerWorker(ctx, plugin.LockNameOpTaskExit)
 	if failFast {
 		return spankRCIfFailFast
 	}
@@ -228,12 +241,17 @@ func snccliprecon_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.
 	return C.ESPANK_SUCCESS
 }
 
+// ncclInspectorEnabled reports whether the user explicitly enabled NCCL Inspector.
+func ncclInspectorEnabled(ctx bridge.SpankContext) bool {
+	value, found := env.Get(ctx, "NCCL_INSPECTOR_ENABLE")
+	return found && value == "1"
+}
+
 // ensureOncePerWorker prevents one hook from running more than once per worker.
-func ensureOncePerWorker(spank C.spank_t, op string) (failFast bool, spankRCIfFailFast C.int, jobId, stepId, hostname string) {
+func ensureOncePerWorker(ctx bridge.SpankContext, op string) (failFast bool, spankRCIfFailFast C.int, jobId, stepId, hostname string) {
 	failFast = false
 	spankRCIfFailFast = C.ESPANK_SUCCESS
 
-	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
 	jobId = ctx.GetJobId()
 
 	stepId = ctx.GetStepId()
