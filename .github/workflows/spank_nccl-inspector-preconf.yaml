@@ -39,11 +39,11 @@ jobs:
           - arch: 'amd64'
             platform: 'linux/amd64'
             runner: 'ubuntu-24.04'
-            deb_arch: 'x86_64'
+            lib_arch: 'x86_64'
           - arch: 'arm64'
             platform: 'linux/arm64'
             runner: 'ubuntu-24.04-arm'
-            deb_arch: 'aarch64'
+            lib_arch: 'aarch64'
 
           - distribution: 'ubuntu24.04'
           - deb_release: 1
@@ -69,8 +69,8 @@ jobs:
             IMAGE_DAYTIME=${{ matrix.image_daytime }}
             PLUGIN_NAME=spank_nccl_inspector_preconf
             DEB_RELEASE=${{ matrix.deb_release }}
-            DEB_ARCH=${{ matrix.deb_arch }}
             ARCH=${{ matrix.arch }}
+            LIB_ARCH=${{ matrix.lib_arch }}
 
       - name: Create artifacts directory
         # language=bash

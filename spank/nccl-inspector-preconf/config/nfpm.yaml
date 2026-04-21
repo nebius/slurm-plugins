@@ -1,6 +1,6 @@
 name: &pkg spank-nccl-inspector-preconf
 
-arch: ${DEB_ARCH}
+arch: ${ARCH}
 platform: linux
 
 version: ${SLURM_VERSION}
@@ -35,7 +35,7 @@ provides:
 
 contents:
   - src: spank_nccl_inspector_preconf.so
-    dst: /usr/lib/${DEB_ARCH}-linux-gnu/slurm/spank_nccl_inspector_preconf.so
+    dst: /usr/lib/${LIB_ARCH}-linux-gnu/slurm/spank_nccl_inspector_preconf.so
     expand: true
 
   - src: copyright

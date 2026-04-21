@@ -43,8 +43,8 @@ RUN export CGO_CFLAGS="-O3 -fPIC -Wall -Wextra -Wno-unused-parameter -I/usr/incl
 WORKDIR /usr/src/nccl-inspector-preconf-deb
 
 ARG DEB_RELEASE
-ARG DEB_ARCH
 ARG ARCH
+ARG LIB_ARCH
 
 # region Build deb
 
