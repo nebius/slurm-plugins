@@ -69,19 +69,11 @@ func snccliprecon_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	_, _ = argc, argv
 
-	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
-		return C.ESPANK_SUCCESS
-	}
-
 	if !config.Enabled {
 		return C.ESPANK_SUCCESS
 	}
 
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
-	if !ncclInspectorEnabled(ctx) {
-		return C.ESPANK_SUCCESS
-	}
-
 	jobId := ctx.GetJobId()
 
 	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.ProfilerPlugin)
@@ -105,19 +97,11 @@ func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.
 func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	_, _ = argc, argv
 
-	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
-		return C.ESPANK_SUCCESS
-	}
-
 	if !config.Enabled {
 		return C.ESPANK_SUCCESS
 	}
 
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
-	if !ncclInspectorEnabled(ctx) {
-		return C.ESPANK_SUCCESS
-	}
-
 	jobId := ctx.GetJobId()
 	stepId := ctx.GetStepId()
 	if stepId == bridge.GetSbatchScriptID() {
@@ -203,19 +187,11 @@ func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv *
 func snccliprecon_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
 	_, _ = argc, argv
 
-	if C.snccliprecon_spank_context() != C.S_CTX_REMOTE {
-		return C.ESPANK_SUCCESS
-	}
-
 	if !config.Enabled {
 		return C.ESPANK_SUCCESS
 	}
 
 	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
-	if !ncclInspectorEnabled(ctx) {
-		return C.ESPANK_SUCCESS
-	}
-
 	failFast, spankRCIfFailFast, jobId, stepId, hostname := ensureOncePerWorker(ctx, plugin.LockNameOpTaskExit)
 	if failFast {
 		return spankRCIfFailFast
@@ -239,12 +215,6 @@ func snccliprecon_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.
 	}
 
 	return C.ESPANK_SUCCESS
-}
-
-// ncclInspectorEnabled reports whether the user explicitly enabled NCCL Inspector.
-func ncclInspectorEnabled(ctx bridge.SpankContext) bool {
-	value, found := env.Get(ctx, "NCCL_INSPECTOR_ENABLE")
-	return found && value == "1"
 }
 
 // ensureOncePerWorker prevents one hook from running more than once per worker.
