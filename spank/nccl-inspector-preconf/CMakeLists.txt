@@ -6,9 +6,11 @@ option(USE_SYSTEM_SLURM "Use system Slurm headers instead of vendor" OFF)
 set(LIBRARY_NAME nccliprecon)
 
 set(SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_config.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_shim.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_helpers.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_options.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_task_init_privileged.c
 )
 
 if (USE_SYSTEM_SLURM)

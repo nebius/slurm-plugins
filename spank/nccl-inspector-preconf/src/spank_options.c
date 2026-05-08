@@ -79,7 +79,7 @@ spank_err_t snccliprecon_args_register(spank_t spank) {
     for (int i = 0; spank_opts[i].name != NULL; ++i) {
         res = spank_option_register(spank, &spank_opts[i]);
         if (res != ESPANK_SUCCESS) {
-            snccliprecon_log_error_fmt(
+            snccliprecon_log_errorf(
                 "Cannot register option %s: %s",
                 spank_opts[i].name,
                 spank_strerror(res)
@@ -102,7 +102,7 @@ static int spank_option_enabled(int val, const char *optarg, int remote) {
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        snccliprecon_log_error_fmt(
+        snccliprecon_log_errorf(
             "--%s: argument required",
             "snccliprecon-enabled"
         );
@@ -125,7 +125,7 @@ static int spank_option_profiler_plugin(int val, const char *optarg, int remote)
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        snccliprecon_log_error_fmt(
+        snccliprecon_log_errorf(
             "--%s: argument required",
             "snccliprecon-profiler-plugin"
         );
@@ -148,7 +148,7 @@ static int spank_option_dump_dir(int val, const char *optarg, int remote) {
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        snccliprecon_log_error_fmt(
+        snccliprecon_log_errorf(
             "--%s: argument required",
             "snccliprecon-dump-dir"
         );
@@ -171,7 +171,7 @@ static int spank_option_prom_dump(int val, const char *optarg, int remote) {
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        snccliprecon_log_error_fmt(
+        snccliprecon_log_errorf(
             "--%s: argument required",
             "snccliprecon-prom-dump"
         );
@@ -194,7 +194,7 @@ static int spank_option_dump_verbose(int val, const char *optarg, int remote) {
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        snccliprecon_log_error_fmt(
+        snccliprecon_log_errorf(
             "--%s: argument required",
             "snccliprecon-dump-verbose"
         );
@@ -217,7 +217,7 @@ static int spank_option_dump_thread_interval_microseconds(int val, const char *o
     (void)remote;
 
     if (optarg == NULL || *optarg == '\0') {
-        snccliprecon_log_error_fmt(
+        snccliprecon_log_errorf(
             "--%s: argument required",
             "snccliprecon-dump-thread-interval-microseconds"
         );

@@ -90,96 +90,6 @@ func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.
 	return C.ESPANK_SUCCESS
 }
 
-// snccliprecon_spank_task_init_privileged prepares dump directories and Enroot mounts.
-//
-//export snccliprecon_spank_task_init_privileged
-//goland:noinspection GoSnakeCaseUsage
-func snccliprecon_spank_task_init_privileged(spank C.spank_t, argc C.int, argv **C.char) C.int {
-	_, _ = argc, argv
-
-	if !config.Enabled {
-		return C.ESPANK_SUCCESS
-	}
-
-	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
-	jobId := ctx.GetJobId()
-	stepId := ctx.GetStepId()
-	if stepId == bridge.GetSbatchScriptID() {
-		return C.ESPANK_SUCCESS
-	}
-
-	// region Ensure dump dir
-
-	ensureDumpDir := func() error {
-		if logDirSetByPlugin(ctx) {
-			dumpDir := arg.SubstituteJobStepId(config.DumpDir, jobId, stepId)
-			env.Set(ctx, "NCCL_INSPECTOR_DUMP_DIR", dumpDir)
-		}
-
-		dumpDir, found := env.Get(ctx, "NCCL_INSPECTOR_DUMP_DIR")
-		if !found || dumpDir == "" {
-			return nil
-		}
-
-		return unix.EnsureDir(dumpDir)
-	}
-	if err := ensureDumpDir(); err != nil {
-		log.Error(err.Error())
-		return C.ESPANK_ERROR
-	}
-
-	// endregion Ensure dump dir
-
-	// region Ensure Enroot mount
-
-	ensureEnrootMount := func() error {
-		if !unix.DirExists(enroot.MountsDir) {
-			return nil
-		}
-
-		profilerPlugin, found := env.Get(ctx, "NCCL_PROFILER_PLUGIN")
-		if !found || profilerPlugin == "" {
-			profilerPlugin = config.ProfilerPlugin
-		}
-
-		dumpDir, found := env.Get(ctx, "NCCL_INSPECTOR_DUMP_DIR")
-		if !found || dumpDir == "" {
-			return nil
-		}
-
-		return enroot.CreateMountFile(
-			jobId,
-			stepId,
-			[]enroot.Mount{{
-				Path:        profilerPlugin,
-				IsDir:       false,
-				IsReadWrite: false,
-			}, {
-				Path:        dumpDir,
-				IsDir:       true,
-				IsReadWrite: true,
-			}},
-		)
-	}
-	if err := unix.EnsureDir(plugin.TmpDirBase); err != nil {
-		return C.ESPANK_ERROR
-	}
-
-	failFast, spankRCIfFailFast, _, _, _ := ensureOncePerWorker(ctx, plugin.LockNameOpTaskInitPrivileged)
-	if failFast {
-		return spankRCIfFailFast
-	}
-
-	if err := ensureEnrootMount(); err != nil {
-		log.Error(err.Error())
-		return C.ESPANK_ERROR
-	}
-
-	// endregion Ensure Enroot mount
-
-	return C.ESPANK_SUCCESS
-}
-
 // snccliprecon_spank_task_exit removes per-step Enroot mounts and worker locks.
 //
 //export snccliprecon_spank_task_exit
@@ -250,12 +160,6 @@ func ensureOncePerWorker(ctx bridge.SpankContext, op string) (failFast bool, spa
 	}
 
 	return
-}
-
-// logDirSetByPlugin reports whether the dump dir env var was set by this plugin.
-func logDirSetByPlugin(ctx bridge.SpankContext) bool {
-	value, found := env.Get(ctx, plugin.EnvLogDirSetByPlugin)
-	return found && value == "1"
 }
 
 // main is required for the Go main package but is unused in the built plugin.

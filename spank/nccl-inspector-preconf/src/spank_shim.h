@@ -5,6 +5,8 @@
 #include <slurm/spank.h>
 #include <stdint.h>
 
+#define SNCCLIPRECON_LOG_PREFIX_FORMAT "[nccl_inspector_preconf] @ %s: "
+
 // region GoExports
 
 /**
@@ -28,17 +30,6 @@ extern int snccliprecon_spank_init(spank_t spank, int argc, char **argv);
  * @return SPANK status code.
  */
 extern int snccliprecon_spank_user_init(spank_t spank, int argc, char **argv);
-
-/**
- * Go implementation of the `slurm_spank_task_init_privileged` hook.
- *
- * @param spank: SPANK context.
- * @param argc: Number of plugin arguments.
- * @param argv: Plugin argument vector.
- *
- * @return SPANK status code.
- */
-extern int snccliprecon_spank_task_init_privileged(spank_t spank, int argc, char **argv);
 
 /**
  * Go implementation of the `slurm_spank_task_exit` hook.
@@ -93,25 +84,56 @@ spank_err_t snccliprecon_get_job_id(spank_t spank, uint32_t *job_id);
 spank_err_t snccliprecon_get_step_id(spank_t spank, uint32_t *step_id);
 
 /**
- * Emits an informational plugin log message.
+ * Slurm logging function pointer.
+ */
+typedef void (*snccliprecon_log_fn_t)(const char *format, ...);
+
+/**
+ * Emits a prefixed plugin log message through the provided Slurm log function.
+ *
+ * @param log_fn: Slurm log function.
+ * @param format: printf-style format string.
+ */
+void snccliprecon_log_at(snccliprecon_log_fn_t log_fn, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
+
+/**
+ * Emits a prefixed user-visible plugin log message.
  *
  * @param msg: Message text to log.
  */
 void snccliprecon_log(const char *msg);
 
 /**
- * Emits an error plugin log message.
+ * Emits a prefixed error plugin log message.
  *
  * @param msg: Message text to log.
  */
 void snccliprecon_log_error(const char *msg);
 
 /**
- * Emits a formatted error plugin log message.
+ * Emits a prefixed formatted error plugin log message.
  *
- * @param fmt: printf-style format string.
+ * @param format: printf-style format string.
  */
-void snccliprecon_log_error_fmt(const char *fmt, ...);
+void snccliprecon_log_errorf(const char *format, ...)
+    __attribute__((format(printf, 1, 2)));
+
+/**
+ * Emits a prefixed debug plugin log message.
+ *
+ * @param format: printf-style format string.
+ */
+void snccliprecon_log_debug(const char *format, ...)
+    __attribute__((format(printf, 1, 2)));
+
+/**
+ * Emits a prefixed debug2 plugin log message.
+ *
+ * @param format: printf-style format string.
+ */
+void snccliprecon_log_debug2(const char *format, ...)
+    __attribute__((format(printf, 1, 2)));
 
 /**
  * Reads one SPANK environment variable into the provided buffer.
