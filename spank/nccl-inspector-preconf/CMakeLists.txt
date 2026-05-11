@@ -10,6 +10,7 @@ set(SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_enroot.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_env.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_file_ops.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_init.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_shim.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_helpers.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_options.c

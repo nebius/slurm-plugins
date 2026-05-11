@@ -1,14 +1,6 @@
 #include "spank_shim.h"
-#include "spank_config.h"
 #include <stdarg.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <sys/file.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #define SNCCLIPRECON_LOG_BUFFER_SIZE 2048
@@ -33,15 +25,6 @@ static void snccliprecon_vlog_at(snccliprecon_log_fn_t log_fn, const char *forma
 
   vsnprintf(buffer, sizeof(buffer), format, args);
   log_fn(SNCCLIPRECON_LOG_PREFIX_FORMAT "%s", snccliprecon_hostname(hostname, sizeof(hostname)), buffer);
-}
-
-/**
- * Returns the current SPANK hook context.
- *
- * @return Current SPANK hook context.
- */
-spank_context_t snccliprecon_spank_context() {
-  return spank_context();
 }
 
 /**
@@ -139,21 +122,4 @@ void snccliprecon_log_debug2(const char *format, ...) {
   va_start(args, format);
   snccliprecon_vlog_at(slurm_debug2, format, args);
   va_end(args);
-}
-
-/**
- * Dispatches one generated SPANK option callback into Go parsing logic.
- *
- * @param name: Logical plugin argument name.
- * @param value: Argument value supplied by SPANK.
- *
- * @return SPANK status code.
- */
-spank_err_t snccliprecon_parse_option(const char *name, const char *value) {
-  spank_err_t config_rc = snccliprecon_config_parse_option(name, value);
-  if (config_rc != ESPANK_SUCCESS) {
-    return config_rc;
-  }
-
-  return snccliprecon_spank_parse_option((char *) name, (char *) value);
 }

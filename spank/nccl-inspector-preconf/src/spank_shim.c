@@ -23,7 +23,7 @@ bool nccl_inspector_enabled(spank_t spank) {
 // endregion Fast-exit
 
 /**
- * Bridges Slurm's init hook to generated option registration and Go logic.
+ * Bridges Slurm's init hook to C logic.
  *
  * @param spank: SPANK context.
  * @param argc: Number of plugin arguments.
@@ -32,12 +32,6 @@ bool nccl_inspector_enabled(spank_t spank) {
  * @return SPANK status code.
  */
 int slurm_spank_init(spank_t spank, int argc, char **argv) {
-  if (snccliprecon_args_register(spank) != ESPANK_SUCCESS) {
-    return ESPANK_ERROR;
-  }
-
-  snccliprecon_config_parse_args(spank, argc, argv);
-
   return snccliprecon_spank_init(spank, argc, argv);
 }
 

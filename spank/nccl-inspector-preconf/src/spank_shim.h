@@ -7,10 +7,8 @@
 
 #define SNCCLIPRECON_LOG_PREFIX_FORMAT "[nccl_inspector_preconf] @ %s: "
 
-// region GoExports
-
 /**
- * Go implementation of the `slurm_spank_init` hook.
+ * C implementation of the `slurm_spank_init` hook.
  *
  * @param spank: SPANK context.
  * @param argc: Number of plugin arguments.
@@ -18,21 +16,7 @@
  *
  * @return SPANK status code.
  */
-extern int snccliprecon_spank_init(spank_t spank, int argc, char **argv);
-
-/**
- * Go parser entrypoint used by generated SPANK option callbacks.
- *
- * @param name: Logical plugin argument name.
- * @param value: Argument value supplied by SPANK.
- *
- * @return SPANK status code.
- */
-extern int snccliprecon_spank_parse_option(char *name, char *value);
-
-// endregion GoExports
-
-// region CHookExports
+int snccliprecon_spank_init(spank_t spank, int argc, char **argv);
 
 /**
  * C implementation of the `slurm_spank_user_init` hook.
@@ -61,16 +45,7 @@ int snccliprecon_task_init_privileged(spank_t spank);
  */
 int snccliprecon_task_exit(spank_t spank);
 
-// endregion CHookExports
-
 // region HelpersExports
-
-/**
- * Returns the current SPANK hook context.
- *
- * @return Current SPANK hook context.
- */
-spank_context_t snccliprecon_spank_context(void);
 
 /**
  * Reads the current Slurm job ID from SPANK.
@@ -168,7 +143,7 @@ spank_err_t snccliprecon_getenv(spank_t spank, const char *key, char *buffer, in
 spank_err_t snccliprecon_setenv(spank_t spank, const char *key, const char *value);
 
 /**
- * Dispatches one generated SPANK option callback into Go parsing logic.
+ * Parses one SPANK option callback value into C plugin config.
  *
  * @param name: Logical plugin argument name.
  * @param value: Argument value supplied by SPANK.
