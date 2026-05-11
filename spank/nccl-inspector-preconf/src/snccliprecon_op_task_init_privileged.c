@@ -1,10 +1,9 @@
-#include "spank_config.h"
-#include "spank_constants.h"
-#include "spank_enroot.h"
-#include "spank_env.h"
-#include "spank_file_ops.h"
-#include "spank_shim.h"
-#include "spank_substitute.h"
+#include "snccliprecon_config.h"
+#include "snccliprecon_enroot.h"
+#include "snccliprecon_env.h"
+#include "snccliprecon_file_ops.h"
+#include "snccliprecon.h"
+#include "snccliprecon_worker_lock.h"
 
 #include <errno.h>
 #include <stdint.h>
@@ -36,8 +35,8 @@ int snccliprecon_task_init_privileged(spank_t spank) {
   char set_by_plugin[8];
   if (snccliprecon_env_get(spank, SNCCLIPRECON_LOG_DIR_SET_BY_PLUGIN, set_by_plugin, sizeof(set_by_plugin)) &&
       strcmp(set_by_plugin, "1") == 0) {
-    if (snccliprecon_substitute_job_step_id(
-          config->dump_dir,
+    if (snccliprecon_config_render_step_dump_dir(
+          config,
           job_id_str,
           step_id_str,
           dump_dir,

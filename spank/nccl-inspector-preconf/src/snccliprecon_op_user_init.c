@@ -1,8 +1,6 @@
-#include "spank_config.h"
-#include "spank_constants.h"
-#include "spank_env.h"
-#include "spank_shim.h"
-#include "spank_substitute.h"
+#include "snccliprecon_config.h"
+#include "snccliprecon_env.h"
+#include "snccliprecon.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -30,7 +28,7 @@ int snccliprecon_user_init(spank_t spank) {
   snccliprecon_env_set_if_missing(spank, "NCCL_PROFILER_PLUGIN", config->profiler_plugin, SNCCLIPRECON_USER_INIT_OP);
 
   char dump_dir[SNCCLIPRECON_PATH_MAX];
-  if (snccliprecon_substitute_job_id(config->dump_dir, job_id_str, dump_dir, sizeof(dump_dir)) != 0) {
+  if (snccliprecon_config_render_job_dump_dir(config, job_id_str, dump_dir, sizeof(dump_dir)) != 0) {
     snccliprecon_log_errorf("%s: cannot render NCCL Inspector dump dir: %s", SNCCLIPRECON_USER_INIT_OP,
                             strerror(errno));
     return ESPANK_ERROR;

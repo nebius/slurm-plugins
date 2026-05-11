@@ -6,18 +6,15 @@ option(USE_SYSTEM_SLURM "Use system Slurm headers instead of vendor" OFF)
 set(LIBRARY_NAME nccliprecon)
 
 set(SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_config.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_enroot.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_env.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_file_ops.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_init.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_shim.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_helpers.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_options.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_substitute.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_task_exit.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_task_init_privileged.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/spank_user_init.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snccliprecon.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snccliprecon_config.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snccliprecon_enroot.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snccliprecon_env.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snccliprecon_file_ops.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snccliprecon_worker_lock.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snccliprecon_op_user_init.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snccliprecon_op_task_init_privileged.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snccliprecon_op_task_exit.c
 )
 
 if (USE_SYSTEM_SLURM)

@@ -4,6 +4,15 @@
 #include <slurm/slurm.h>
 #include <slurm/spank.h>
 
+#define SNCCLIPRECON_PATH_MAX 4096
+#define SNCCLIPRECON_DEFAULT_MODE 0777
+#define SNCCLIPRECON_TMP_DIR_BASE "/tmp/nccl_inspector_preconf"
+
+#define SNCCLIPRECON_USER_INIT_OP "user-init"
+#define SNCCLIPRECON_TASK_INIT_PRIVILEGED_OP "task-init-privileged"
+#define SNCCLIPRECON_TASK_EXIT_OP "task-exit"
+
+#define SNCCLIPRECON_LOG_DIR_SET_BY_PLUGIN "SNCCLIPRECON_LOG_DIR_SET_BY_PLUGIN"
 #define SNCCLIPRECON_LOG_PREFIX_FORMAT "[nccl_inspector_preconf] @ %s: "
 
 /**
@@ -67,14 +76,5 @@ __attribute__((format(printf, 1, 2)));
  */
 void snccliprecon_log_debug2(const char *format, ...)
 __attribute__((format(printf, 1, 2)));
-
-/**
- * Registers the SPANK option table.
- *
- * @param spank: SPANK context.
- *
- * @return SPANK status code.
- */
-spank_err_t snccliprecon_args_register(spank_t spank);
 
 #endif

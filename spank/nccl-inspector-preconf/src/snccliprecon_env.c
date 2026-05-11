@@ -1,6 +1,5 @@
-#include "spank_config.h"
-#include "spank_env.h"
-#include "spank_shim.h"
+#include "snccliprecon_env.h"
+#include "snccliprecon.h"
 
 bool snccliprecon_env_get(spank_t spank, const char *key, char *buffer, size_t buffer_size) {
   if (buffer_size == 0) {

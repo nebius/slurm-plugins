@@ -1,8 +1,6 @@
-#include "spank_constants.h"
-#include "spank_config.h"
-#include "spank_enroot.h"
-#include "spank_file_ops.h"
-#include "spank_shim.h"
+#include "snccliprecon_enroot.h"
+#include "snccliprecon_file_ops.h"
+#include "snccliprecon.h"
 
 #include <errno.h>
 #include <fcntl.h>
