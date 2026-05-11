@@ -23,7 +23,7 @@ bool nccl_inspector_enabled(spank_t spank) {
 // endregion Fast-exit
 
 /**
- * Bridges Slurm's init hook to C logic.
+ * Runs plugin initialization.
  *
  * @param spank: SPANK context.
  * @param argc: Number of plugin arguments.
@@ -36,7 +36,7 @@ int slurm_spank_init(spank_t spank, int argc, char **argv) {
 }
 
 /**
- * Bridges Slurm's user-init hook to C logic.
+ * Exports NCCL Inspector environment defaults before user code starts.
  *
  * @param spank: SPANK context.
  * @param argc: Number of plugin arguments.
@@ -60,7 +60,7 @@ int slurm_spank_user_init(spank_t spank, int argc, char **argv) {
 }
 
 /**
- * Bridges Slurm's privileged task-init hook to C logic.
+ * Prepares worker-local NCCL Inspector files before launching a task.
  *
  * @param spank: SPANK context.
  * @param argc: Number of plugin arguments.
@@ -84,7 +84,7 @@ int slurm_spank_task_init_privileged(spank_t spank, int argc, char **argv) {
 }
 
 /**
- * Bridges Slurm's task-exit hook to C logic.
+ * Cleans up worker-local NCCL Inspector files after task exit.
  *
  * @param spank: SPANK context.
  * @param argc: Number of plugin arguments.
@@ -106,8 +106,3 @@ int slurm_spank_task_exit(spank_t spank, int argc, char **argv) {
 
   return snccliprecon_task_exit(spank);
 }
-
-/**
- * Slurm sentinel step ID used to detect batch-script contexts.
- */
-uint32_t snccliprecon_slurm_batch_script_id = (uint32_t) (SLURM_BATCH_SCRIPT);

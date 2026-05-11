@@ -2,7 +2,7 @@
 
 This directory exists to support local development of the `nccl-inspector-preconf` SPANK plugin.
 
-The plugin is built with `cgo` and depends on Slurm headers and a Slurm-compatible build environment.
+The plugin depends on Slurm headers and a Slurm-compatible build environment.
 Those inputs need to match the Slurm image variant the plugin will run with, so these Dockerfiles provide a reproducible
 way to work against the same base image instead of relying on whatever happens to be installed on the host.
 
@@ -15,6 +15,6 @@ They are not part of the runtime artifact and are not used by CI.
 
 - `builder.dockerfile` exists to build the plugin inside a matching Slurm container image
 
-  It installs Go, copies `src/`, and produces `build/${PLUGIN_NAME}.so`.
+  It copies `src/`, compiles the plugin with `gcc`, and produces `build/${PLUGIN_NAME}.so`.
   
   It supports both `release` and `debug` builds through the `MODE` build arg.

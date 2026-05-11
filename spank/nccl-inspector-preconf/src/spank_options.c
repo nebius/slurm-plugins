@@ -103,11 +103,6 @@ spank_err_t snccliprecon_args_register(spank_t spank) {
   return res;
 }
 
-spank_err_t snccliprecon_parse_option(const char *name, const char *value) {
-  return snccliprecon_config_parse_option(name, value);
-}
-
-
 /**
  * Implementation of enabled option registration callback.
  *
@@ -125,7 +120,7 @@ static int spank_option_enabled(int val, const char *optarg, int remote) {
     return ESPANK_BAD_ARG;
   }
 
-  return snccliprecon_parse_option(
+  return snccliprecon_config_parse_option(
     "enabled",
     optarg
   );
@@ -148,7 +143,7 @@ static int spank_option_profiler_plugin(int val, const char *optarg, int remote)
     return ESPANK_BAD_ARG;
   }
 
-  return snccliprecon_parse_option(
+  return snccliprecon_config_parse_option(
     "profiler-plugin",
     optarg
   );
@@ -171,7 +166,7 @@ static int spank_option_dump_dir(int val, const char *optarg, int remote) {
     return ESPANK_BAD_ARG;
   }
 
-  return snccliprecon_parse_option(
+  return snccliprecon_config_parse_option(
     "dump-dir",
     optarg
   );
@@ -194,7 +189,7 @@ static int spank_option_prom_dump(int val, const char *optarg, int remote) {
     return ESPANK_BAD_ARG;
   }
 
-  return snccliprecon_parse_option(
+  return snccliprecon_config_parse_option(
     "prom-dump",
     optarg
   );
@@ -217,7 +212,7 @@ static int spank_option_dump_verbose(int val, const char *optarg, int remote) {
     return ESPANK_BAD_ARG;
   }
 
-  return snccliprecon_parse_option(
+  return snccliprecon_config_parse_option(
     "dump-verbose",
     optarg
   );
@@ -240,7 +235,7 @@ static int spank_option_dump_thread_interval_microseconds(int val, const char *o
     return ESPANK_BAD_ARG;
   }
 
-  return snccliprecon_parse_option(
+  return snccliprecon_config_parse_option(
     "dump-thread-interval-microseconds",
     optarg
   );

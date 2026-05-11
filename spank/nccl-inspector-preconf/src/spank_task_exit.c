@@ -16,8 +16,8 @@ int snccliprecon_task_exit(spank_t spank) {
 
   uint32_t job_id = 0;
   uint32_t step_id = 0;
-  (void) snccliprecon_get_job_id(spank, &job_id);
-  (void) snccliprecon_get_step_id(spank, &step_id);
+  (void) spank_get_item(spank, S_JOB_ID, &job_id);
+  (void) spank_get_item(spank, S_JOB_STEPID, &step_id);
   snccliprecon_log_debug2("%s: job=%u step=%u", SNCCLIPRECON_TASK_EXIT_OP, job_id, step_id);
 
   if (step_id == SLURM_BATCH_SCRIPT) {

@@ -21,7 +21,7 @@ int snccliprecon_user_init(spank_t spank) {
   }
 
   uint32_t job_id = 0;
-  (void) snccliprecon_get_job_id(spank, &job_id);
+  (void) spank_get_item(spank, S_JOB_ID, &job_id);
 
   char job_id_str[16];
   (void) snprintf(job_id_str, sizeof(job_id_str), "%u", job_id);

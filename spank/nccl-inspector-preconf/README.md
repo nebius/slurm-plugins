@@ -4,7 +4,9 @@
 <img alt="Logo of the nccl-inspector-preconf plugin depicting a leprechaun" src="./assets/snccliprecon.png" width="400" height="auto"/>
 </p>
 
-`nccl-inspector-preconf` is a Slurm SPANK plugin that prepares [NCCL Inspector](https://docs.nvidia.com/networking/display/hpcxv2251/spectrum-x-nccl-plugin) environment variables before user code starts.
+`nccl-inspector-preconf` is a Slurm SPANK plugin that
+prepares [NCCL Inspector](https://docs.nvidia.com/networking/display/hpcxv2251/spectrum-x-nccl-plugin) environment
+variables before user code starts.
 
 > [!NOTE]
 > Short name is `snccliprecon` (read as `Sneaky Leprechaun`)
@@ -34,7 +36,7 @@ Settings are applied in this order:
 3. Environment variables
 4. `srun` plugin options
 
-To inspect generated SPANK options:
+To inspect SPANK options:
 
 ```bash
 srun --help
@@ -92,16 +94,6 @@ The mount file is removed during task exit.
 
 ## Development
 
-### Generate SPANK options
-
-The SPANK option table and callbacks are generated from `src/internal/arg`.
-
-```bash
-make generate-options
-```
-
-This writes `src/spank_options.c`.
-
 ### Fetch Slurm headers
 
 ```bash
@@ -127,8 +119,6 @@ Useful overrides:
 ```bash
 make ARCH=amd64 docker-build
 make ARCH=arm64 docker-build
-make TARGET_COMPILATION_MODE=debug docker-build
-make TARGET_COMPILATION_MODE=release docker-build
 make SLURM_VERSION=<VERSION> docker-build
 ```
 

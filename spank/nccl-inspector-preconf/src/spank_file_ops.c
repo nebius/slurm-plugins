@@ -209,12 +209,12 @@ int snccliprecon_create_once_per_worker_lock(
 void snccliprecon_remove_worker_lock(uint32_t job_id, uint32_t step_id, const char *hostname, const char *op) {
   char lock_path[SNCCLIPRECON_PATH_MAX];
   if (snccliprecon_render_worker_lock_path(job_id, step_id, hostname, op, lock_path, sizeof(lock_path)) != 0) {
-    snccliprecon_log_debug2("cannot render worker lock for %s: %s", op, strerror(errno));
+    snccliprecon_log_debug2("%s: cannot render worker lock: %s", op, strerror(errno));
     return;
   }
 
   if (unlink(lock_path) != 0 && errno != ENOENT) {
-    snccliprecon_log_debug2("cannot remove worker lock %s: %s", lock_path, strerror(errno));
+    snccliprecon_log_debug2("%s: cannot remove worker lock %s: %s", op, lock_path, strerror(errno));
     return;
   }
 
