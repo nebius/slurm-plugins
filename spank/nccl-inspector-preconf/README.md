@@ -100,7 +100,7 @@ The mount file is removed during task exit.
 make docker-headers
 ```
 
-This populates `src/vendor/slurm`.
+This populates `vendor/slurm`.
 
 You can override the Slurm version:
 
