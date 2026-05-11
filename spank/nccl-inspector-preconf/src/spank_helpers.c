@@ -142,33 +142,6 @@ void snccliprecon_log_debug2(const char *format, ...) {
 }
 
 /**
- * Reads one SPANK environment variable into the provided buffer.
- *
- * @param spank: SPANK context.
- * @param key: Environment variable name.
- * @param buffer: Output buffer for the variable value.
- * @param length: Size of buffer in bytes.
- *
- * @return SPANK status code.
- */
-spank_err_t snccliprecon_getenv(spank_t spank, const char *key, char *buffer, int const length) {
-  return spank_getenv(spank, key, buffer, length);
-}
-
-/**
- * Sets one SPANK environment variable.
- *
- * @param spank: SPANK context.
- * @param key: Environment variable name.
- * @param value: Environment variable value.
- *
- * @return SPANK status code.
- */
-spank_err_t snccliprecon_setenv(spank_t spank, const char *key, const char *value) {
-  return spank_setenv(spank, key, value, 1);
-}
-
-/**
  * Dispatches one generated SPANK option callback into Go parsing logic.
  *
  * @param name: Logical plugin argument name.

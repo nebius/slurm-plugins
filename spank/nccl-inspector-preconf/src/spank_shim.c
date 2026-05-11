@@ -1,5 +1,6 @@
 #include "spank_shim.h"
 #include "spank_config.h"
+#include "spank_env.h"
 #include <slurm/spank.h>
 #include <string.h>
 #include <stdbool.h>
@@ -10,7 +11,7 @@ SPANK_PLUGIN(nccl_inspector_preconf, 1);
 
 bool nccl_inspector_enabled(spank_t spank) {
   char inspector_enabled[8] = {0};
-  if (spank_getenv(spank, "NCCL_INSPECTOR_ENABLE", inspector_enabled, sizeof(inspector_enabled)) != ESPANK_SUCCESS) {
+  if (!snccliprecon_env_get(spank, "NCCL_INSPECTOR_ENABLE", inspector_enabled, sizeof(inspector_enabled))) {
     snccliprecon_log_debug("NCCL_INSPECTOR_ENABLE is not set");
     return false;
   }
@@ -41,7 +42,7 @@ int slurm_spank_init(spank_t spank, int argc, char **argv) {
 }
 
 /**
- * Bridges Slurm's user-init hook to Go logic.
+ * Bridges Slurm's user-init hook to C logic.
  *
  * @param spank: SPANK context.
  * @param argc: Number of plugin arguments.
@@ -50,6 +51,9 @@ int slurm_spank_init(spank_t spank, int argc, char **argv) {
  * @return SPANK status code.
  */
 int slurm_spank_user_init(spank_t spank, int argc, char **argv) {
+  (void) argc;
+  (void) argv;
+
   if (spank_remote(spank) != 1) {
     return ESPANK_SUCCESS;
   }
@@ -58,7 +62,7 @@ int slurm_spank_user_init(spank_t spank, int argc, char **argv) {
     return ESPANK_SUCCESS;
   }
 
-  return snccliprecon_spank_user_init(spank, argc, argv);
+  return snccliprecon_user_init(spank);
 }
 
 /**

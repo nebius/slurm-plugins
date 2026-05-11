@@ -13,9 +13,7 @@ import (
 	argparse "github.com/nebius/nccl-inspector-preconf/internal/arg/parse"
 	"github.com/nebius/nccl-inspector-preconf/internal/bridge"
 	"github.com/nebius/nccl-inspector-preconf/internal/cfg"
-	"github.com/nebius/nccl-inspector-preconf/internal/env"
 	"github.com/nebius/nccl-inspector-preconf/internal/log"
-	"github.com/nebius/nccl-inspector-preconf/internal/plugin"
 )
 
 var (
@@ -55,34 +53,6 @@ func snccliprecon_spank_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
 			)
 		}
 	}
-
-	return C.ESPANK_SUCCESS
-}
-
-// snccliprecon_spank_user_init exports plugin-controlled NCCL Inspector env vars.
-//
-//export snccliprecon_spank_user_init
-//goland:noinspection GoSnakeCaseUsage
-func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.int {
-	_, _ = argc, argv
-
-	if !config.Enabled {
-		return C.ESPANK_SUCCESS
-	}
-
-	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
-	jobId := ctx.GetJobId()
-
-	env.SetIfMissing(ctx, "NCCL_PROFILER_PLUGIN", config.ProfilerPlugin)
-	{
-		_, setByPlugin := env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_DIR", arg.SubstituteJobId(config.DumpDir, jobId))
-		if setByPlugin {
-			env.Set(ctx, plugin.EnvLogDirSetByPlugin, "1")
-		}
-	}
-	env.SetIfMissing(ctx, "NCCL_INSPECTOR_PROM_DUMP", arg.FormatBoolValue(config.PromDump))
-	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_VERBOSE", arg.FormatBoolValue(config.DumpVerbose))
-	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS", config.DumpThreadIntervalMicroseconds)
 
 	return C.ESPANK_SUCCESS
 }

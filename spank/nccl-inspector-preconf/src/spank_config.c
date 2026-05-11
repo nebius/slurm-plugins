@@ -1,6 +1,8 @@
 #include "spank_config.h"
+#include "spank_env.h"
 #include "spank_shim.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -14,6 +16,7 @@
 #endif
 
 static const char *DEFAULT_DUMP_DIR = "/opt/soperator-outputs/nccl_profiles";
+static const char *DEFAULT_DUMP_THREAD_INTERVAL_MICROSECONDS = "1000000";
 
 static snccliprecon_config_t config;
 
@@ -28,6 +31,27 @@ static int set_string(char *dst, size_t dst_size, const char *value) {
   }
 
   return 0;
+}
+
+static int set_uint_string(char *dst, size_t dst_size, const char *value) {
+  if (value == NULL || value[0] == '\0') {
+    return -1;
+  }
+
+  unsigned long long parsed = 0;
+  for (const char *p = value; *p != '\0'; ++p) {
+    if (*p < '0' || *p > '9') {
+      return -1;
+    }
+
+    unsigned int digit = (unsigned int) (*p - '0');
+    if (parsed > (ULLONG_MAX - digit) / 10) {
+      return -1;
+    }
+    parsed = parsed * 10 + digit;
+  }
+
+  return set_string(dst, dst_size, value);
 }
 
 static int parse_bool(const char *value, bool *result) {
@@ -48,16 +72,10 @@ static int parse_bool(const char *value, bool *result) {
   return -1;
 }
 
-static bool is_go_only_option(const char *name) {
-  return strcmp(name, "prom-dump") == 0 ||
-         strcmp(name, "dump-verbose") == 0 ||
-         strcmp(name, "dump-thread-interval-microseconds") == 0;
-}
-
 static void parse_env_option(spank_t spank, const char *env_name, const char *option_name) {
   char value[SNCCLIPRECON_PATH_MAX];
 
-  if (spank_getenv(spank, env_name, value, sizeof(value)) != ESPANK_SUCCESS) {
+  if (!snccliprecon_env_get(spank, env_name, value, sizeof(value))) {
     snccliprecon_log_debug2("config: env %s is not set", env_name);
     return;
   }
@@ -76,7 +94,14 @@ const snccliprecon_config_t *snccliprecon_config_get(void) {
 void snccliprecon_config_reset(void) {
   config.enabled = true;
   (void) set_string(config.profiler_plugin, sizeof(config.profiler_plugin), SNCCLIPRECON_DEFAULT_PROFILER_PLUGIN);
+  config.prom_dump = false;
   (void) set_string(config.dump_dir, sizeof(config.dump_dir), DEFAULT_DUMP_DIR);
+  config.dump_verbose = true;
+  (void) set_string(
+    config.dump_thread_interval_microseconds,
+    sizeof(config.dump_thread_interval_microseconds),
+    DEFAULT_DUMP_THREAD_INTERVAL_MICROSECONDS
+  );
   snccliprecon_log_debug2("config: reset defaults");
 }
 
@@ -111,8 +136,38 @@ spank_err_t snccliprecon_config_parse_option(const char *name, const char *value
     return ESPANK_SUCCESS;
   }
 
-  if (is_go_only_option(name)) {
-    snccliprecon_log_debug2("config: ignoring Go-only option %s in C config", name);
+  if (strcmp(name, "prom-dump") == 0) {
+    bool parsed = false;
+    if (parse_bool(value, &parsed) != 0) {
+      return ESPANK_BAD_ARG;
+    }
+    config.prom_dump = parsed;
+    snccliprecon_log_debug2("config: prom-dump=%s", config.prom_dump ? "true" : "false");
+    return ESPANK_SUCCESS;
+  }
+
+  if (strcmp(name, "dump-verbose") == 0) {
+    bool parsed = false;
+    if (parse_bool(value, &parsed) != 0) {
+      return ESPANK_BAD_ARG;
+    }
+    config.dump_verbose = parsed;
+    snccliprecon_log_debug2("config: dump-verbose=%s", config.dump_verbose ? "true" : "false");
+    return ESPANK_SUCCESS;
+  }
+
+  if (strcmp(name, "dump-thread-interval-microseconds") == 0) {
+    if (set_uint_string(
+          config.dump_thread_interval_microseconds,
+          sizeof(config.dump_thread_interval_microseconds),
+          value
+        ) != 0) {
+      return ESPANK_BAD_ARG;
+    }
+    snccliprecon_log_debug2(
+      "config: dump-thread-interval-microseconds=%s",
+      config.dump_thread_interval_microseconds
+    );
     return ESPANK_SUCCESS;
   }
 
@@ -155,10 +210,21 @@ void snccliprecon_config_parse_args(spank_t spank, int argc, char **argv) {
   parse_env_option(spank, "SNCCLIPRECON_ENABLED", "enabled");
   parse_env_option(spank, "SNCCLIPRECON_PROFILER_PLUGIN", "profiler-plugin");
   parse_env_option(spank, "SNCCLIPRECON_DUMP_DIR", "dump-dir");
+  parse_env_option(spank, "SNCCLIPRECON_PROM_DUMP", "prom-dump");
+  parse_env_option(spank, "SNCCLIPRECON_DUMP_VERBOSE", "dump-verbose");
+  parse_env_option(
+    spank,
+    "SNCCLIPRECON_DUMP_THREAD_INTERVAL_MICROSECONDS",
+    "dump-thread-interval-microseconds"
+  );
   snccliprecon_log_debug2(
-      "config: final enabled=%s profiler-plugin=%s dump-dir=%s",
-      config.enabled ? "true" : "false",
-      config.profiler_plugin,
-      config.dump_dir
+    "config: final enabled=%s profiler-plugin=%s prom-dump=%s dump-dir=%s dump-verbose=%s "
+    "dump-thread-interval-microseconds=%s",
+    config.enabled ? "true" : "false",
+    config.profiler_plugin,
+    config.prom_dump ? "true" : "false",
+    config.dump_dir,
+    config.dump_verbose ? "true" : "false",
+    config.dump_thread_interval_microseconds
   );
 }

@@ -21,17 +21,6 @@
 extern int snccliprecon_spank_init(spank_t spank, int argc, char **argv);
 
 /**
- * Go implementation of the `slurm_spank_user_init` hook.
- *
- * @param spank: SPANK context.
- * @param argc: Number of plugin arguments.
- * @param argv: Plugin argument vector.
- *
- * @return SPANK status code.
- */
-extern int snccliprecon_spank_user_init(spank_t spank, int argc, char **argv);
-
-/**
  * Go parser entrypoint used by generated SPANK option callbacks.
  *
  * @param name: Logical plugin argument name.
@@ -44,6 +33,15 @@ extern int snccliprecon_spank_parse_option(char *name, char *value);
 // endregion GoExports
 
 // region CHookExports
+
+/**
+ * C implementation of the `slurm_spank_user_init` hook.
+ *
+ * @param spank: SPANK context.
+ *
+ * @return SPANK status code.
+ */
+int snccliprecon_user_init(spank_t spank);
 
 /**
  * C implementation of the `slurm_spank_task_init_privileged` hook.
