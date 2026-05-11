@@ -7,18 +7,15 @@ package main
 */
 import "C"
 import (
-	"errors"
 	"unsafe"
 
 	"github.com/nebius/nccl-inspector-preconf/internal/arg"
 	argparse "github.com/nebius/nccl-inspector-preconf/internal/arg/parse"
 	"github.com/nebius/nccl-inspector-preconf/internal/bridge"
 	"github.com/nebius/nccl-inspector-preconf/internal/cfg"
-	"github.com/nebius/nccl-inspector-preconf/internal/enroot"
 	"github.com/nebius/nccl-inspector-preconf/internal/env"
 	"github.com/nebius/nccl-inspector-preconf/internal/log"
 	"github.com/nebius/nccl-inspector-preconf/internal/plugin"
-	"github.com/nebius/nccl-inspector-preconf/internal/unix"
 )
 
 var (
@@ -88,78 +85,6 @@ func snccliprecon_spank_user_init(spank C.spank_t, argc C.int, argv **C.char) C.
 	env.SetIfMissing(ctx, "NCCL_INSPECTOR_DUMP_THREAD_INTERVAL_MICROSECONDS", config.DumpThreadIntervalMicroseconds)
 
 	return C.ESPANK_SUCCESS
-}
-
-// snccliprecon_spank_task_exit removes per-step Enroot mounts and worker locks.
-//
-//export snccliprecon_spank_task_exit
-//goland:noinspection GoSnakeCaseUsage
-func snccliprecon_spank_task_exit(spank C.spank_t, argc C.int, argv **C.char) C.int {
-	_, _ = argc, argv
-
-	if !config.Enabled {
-		return C.ESPANK_SUCCESS
-	}
-
-	ctx := bridge.NewSpankContext(unsafe.Pointer(spank))
-	failFast, spankRCIfFailFast, jobId, stepId, hostname := ensureOncePerWorker(ctx, plugin.LockNameOpTaskExit)
-	if failFast {
-		return spankRCIfFailFast
-	}
-
-	if err := enroot.RemoveMountFile(jobId, stepId); err != nil {
-		log.Error(err.Error())
-		return C.ESPANK_ERROR
-	}
-
-	{
-		_ = unix.RemoveLock(
-			plugin.RenderWorkerOpLockName(jobId, stepId, hostname, plugin.LockNameOpUserInit),
-		)
-		_ = unix.RemoveLock(
-			plugin.RenderWorkerOpLockName(jobId, stepId, hostname, plugin.LockNameOpTaskInitPrivileged),
-		)
-		_ = unix.RemoveLock(
-			plugin.RenderWorkerOpLockName(jobId, stepId, hostname, plugin.LockNameOpTaskExit),
-		)
-	}
-
-	return C.ESPANK_SUCCESS
-}
-
-// ensureOncePerWorker prevents one hook from running more than once per worker.
-func ensureOncePerWorker(ctx bridge.SpankContext, op string) (failFast bool, spankRCIfFailFast C.int, jobId, stepId, hostname string) {
-	failFast = false
-	spankRCIfFailFast = C.ESPANK_SUCCESS
-
-	jobId = ctx.GetJobId()
-
-	stepId = ctx.GetStepId()
-	if stepId == bridge.GetSbatchScriptID() {
-		failFast = true
-		return
-	}
-
-	hostname = unix.GetHostname()
-
-	// Ensure hook ran once per worker.
-	{
-		if err := unix.CreateLock(
-			plugin.RenderWorkerOpLockName(jobId, stepId, hostname, op),
-		); err != nil {
-			if errors.Is(err, unix.ErrLockExists) {
-				failFast = true
-				return
-			}
-
-			log.Message(err.Error())
-			failFast = true
-			spankRCIfFailFast = C.ESPANK_ERROR
-			return
-		}
-	}
-
-	return
 }
 
 // main is required for the Go main package but is unused in the built plugin.

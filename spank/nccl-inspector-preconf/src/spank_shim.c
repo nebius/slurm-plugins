@@ -1,6 +1,5 @@
 #include "spank_shim.h"
 #include "spank_config.h"
-#include "spank_task_init_privileged.h"
 #include <slurm/spank.h>
 #include <string.h>
 #include <stdbool.h>
@@ -87,7 +86,7 @@ int slurm_spank_task_init_privileged(spank_t spank, int argc, char **argv) {
 }
 
 /**
- * Bridges Slurm's task-exit hook to Go logic.
+ * Bridges Slurm's task-exit hook to C logic.
  *
  * @param spank: SPANK context.
  * @param argc: Number of plugin arguments.
@@ -96,6 +95,9 @@ int slurm_spank_task_init_privileged(spank_t spank, int argc, char **argv) {
  * @return SPANK status code.
  */
 int slurm_spank_task_exit(spank_t spank, int argc, char **argv) {
+  (void) argc;
+  (void) argv;
+
   if (spank_remote(spank) != 1) {
     return ESPANK_SUCCESS;
   }
@@ -104,7 +106,7 @@ int slurm_spank_task_exit(spank_t spank, int argc, char **argv) {
     return ESPANK_SUCCESS;
   }
 
-  return snccliprecon_spank_task_exit(spank, argc, argv);
+  return snccliprecon_task_exit(spank);
 }
 
 /**
