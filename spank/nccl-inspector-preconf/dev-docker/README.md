@@ -16,5 +16,9 @@ They are not part of the runtime artifact and are not used by CI.
 - `builder.dockerfile` exists to build the plugin inside a matching Slurm container image
 
   It copies `src/`, compiles the plugin with `gcc`, and produces `build/${PLUGIN_NAME}.so`.
-  
-  It supports both `release` and `debug` builds through the `MODE` build arg.
+
+  This is the image used by `make ARCH=amd64 docker-build` and related `ARCH`
+  overrides.
+
+The package-producing `../Dockerfile` also builds the plugin with `gcc`, then
+uses `nfpm` to assemble the `.deb` package and shared-object artifact.

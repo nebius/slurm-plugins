@@ -16,6 +16,15 @@ enum {
     SNCCLIPRECON_INSPECTOR_ENABLE_BUFFER_SIZE = 8,
 };
 
+/**
+ * @brief Return the local hostname for log prefixes.
+ *
+ * Falls back to `unknown` when the hostname cannot be read.
+ *
+ * @param hostname Destination buffer.
+ * @param hostname_size Destination buffer size.
+ * @return Pointer to the rendered hostname.
+ */
 static const char *
 snccliprecon_log_hostname(char *hostname, size_t hostname_size) {
     if (hostname_size == 0) {
@@ -30,6 +39,13 @@ snccliprecon_log_hostname(char *hostname, size_t hostname_size) {
     return hostname;
 }
 
+/**
+ * @brief Format and emit a hostname-prefixed log message.
+ *
+ * @param log_fn Slurm logging function.
+ * @param format printf-style format string.
+ * @param args Format arguments.
+ */
 static void snccliprecon_vlog_at(
     snccliprecon_log_fn_t log_fn, const char *format, va_list args
 ) {
@@ -44,6 +60,14 @@ static void snccliprecon_vlog_at(
     );
 }
 
+/**
+ * @brief Render an errno value using the thread-safe `strerror_r` API.
+ *
+ * @param errnum errno value.
+ * @param buffer Destination buffer.
+ * @param buffer_size Destination buffer size.
+ * @return Pointer to the rendered error string.
+ */
 static const char *
 snccliprecon_strerror(int errnum, char *buffer, size_t buffer_size) {
     if (buffer_size == 0) {
@@ -66,6 +90,14 @@ snccliprecon_strerror(int errnum, char *buffer, size_t buffer_size) {
     return buffer;
 }
 
+/**
+ * @brief Format and emit a hostname-prefixed log message with errno text.
+ *
+ * @param log_fn Slurm logging function.
+ * @param errnum errno value.
+ * @param format printf-style format string.
+ * @param args Format arguments.
+ */
 static void snccliprecon_vlog_errno_at(
     snccliprecon_log_fn_t log_fn, int errnum, const char *format, va_list args
 ) {
@@ -124,6 +156,15 @@ void snccliprecon_log_debug2_errno(int errnum, const char *format, ...) {
 
 // region Fast-exit
 
+/**
+ * @brief Check the explicit per-job activation flag.
+ *
+ * Runtime hooks call this before entering any plugin operation that may touch
+ * the filesystem. Jobs must opt in with `NCCL_INSPECTOR_ENABLE=1`.
+ *
+ * @param spank SPANK context.
+ * @return `true` when NCCL Inspector was explicitly enabled for the job.
+ */
 static bool nccl_inspector_enabled(spank_t spank) {
     char inspector_enabled[SNCCLIPRECON_INSPECTOR_ENABLE_BUFFER_SIZE] = {0};
     if (!snccliprecon_env_get(
@@ -160,11 +201,11 @@ int snccliprecon_spank_init(spank_t spank, int argc, char **argv) {
 }
 
 /**
- * Runs plugin initialization.
+ * @brief Runs plugin initialization.
  *
- * @param spank: SPANK context.
- * @param argc: Number of plugin arguments.
- * @param argv: Plugin argument vector.
+ * @param spank SPANK context.
+ * @param argc Number of plugin arguments.
+ * @param argv Plugin argument vector.
  *
  * @return SPANK status code.
  */
@@ -173,11 +214,11 @@ int slurm_spank_init(spank_t spank, int argc, char **argv) {
 }
 
 /**
- * Exports NCCL Inspector environment defaults before user code starts.
+ * @brief Exports NCCL Inspector environment defaults before user code starts.
  *
- * @param spank: SPANK context.
- * @param argc: Number of plugin arguments.
- * @param argv: Plugin argument vector.
+ * @param spank SPANK context.
+ * @param argc Number of plugin arguments.
+ * @param argv Plugin argument vector.
  *
  * @return SPANK status code.
  */
@@ -197,11 +238,11 @@ int slurm_spank_user_init(spank_t spank, int argc, char **argv) {
 }
 
 /**
- * Prepares worker-local NCCL Inspector files before launching a task.
+ * @brief Prepares worker-local NCCL Inspector files before launching a task.
  *
- * @param spank: SPANK context.
- * @param argc: Number of plugin arguments.
- * @param argv: Plugin argument vector.
+ * @param spank SPANK context.
+ * @param argc Number of plugin arguments.
+ * @param argv Plugin argument vector.
  *
  * @return SPANK status code.
  */
@@ -221,11 +262,11 @@ int slurm_spank_task_init_privileged(spank_t spank, int argc, char **argv) {
 }
 
 /**
- * Cleans up worker-local NCCL Inspector files after task exit.
+ * @brief Cleans up worker-local NCCL Inspector files after task exit.
  *
- * @param spank: SPANK context.
- * @param argc: Number of plugin arguments.
- * @param argv: Plugin argument vector.
+ * @param spank SPANK context.
+ * @param argc Number of plugin arguments.
+ * @param argv Plugin argument vector.
  *
  * @return SPANK status code.
  */

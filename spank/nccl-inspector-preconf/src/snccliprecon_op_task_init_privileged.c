@@ -14,6 +14,21 @@ enum {
     SNCCLIPRECON_WORKER_STEP_ALREADY_DONE = 1,
 };
 
+/**
+ * @brief Convert a plugin-owned job-level dump directory to step-level.
+ *
+ * `user_init` marks dump directories it created itself. Only those directories
+ * are rewritten here, so user-provided `NCCL_INSPECTOR_DUMP_DIR` values remain
+ * untouched.
+ *
+ * @param spank SPANK context.
+ * @param config Active plugin configuration.
+ * @param job_id Job id string.
+ * @param step_id Step id string.
+ * @param dump_dir Destination buffer for the final dump directory.
+ * @param dump_dir_size Destination buffer size.
+ * @return SPANK status code.
+ */
 static int set_step_dump_dir_if_owned_by_plugin(
     spank_t spank, const snccliprecon_config_t *config, const char *job_id,
     const char *step_id, char *dump_dir, size_t dump_dir_size
@@ -55,6 +70,17 @@ static int set_step_dump_dir_if_owned_by_plugin(
     return ESPANK_SUCCESS;
 }
 
+/**
+ * @brief Create the task-init worker lock and identify repeated hook calls.
+ *
+ * @param job_id Slurm job id.
+ * @param step_id Slurm step id.
+ * @param hostname Destination buffer for the current hostname.
+ * @param hostname_size Destination buffer size.
+ * @return `ESPANK_SUCCESS` when the lock is created,
+ *         `SNCCLIPRECON_WORKER_STEP_ALREADY_DONE` when it already exists,
+ *         or `ESPANK_ERROR` on failure.
+ */
 static int create_worker_lock_once(
     uint32_t job_id, uint32_t step_id, char *hostname, size_t hostname_size
 ) {
@@ -98,6 +124,14 @@ static int create_worker_lock_once(
     return ESPANK_SUCCESS;
 }
 
+/**
+ * @brief Ensure the current `NCCL_INSPECTOR_DUMP_DIR` exists if configured.
+ *
+ * @param spank SPANK context.
+ * @param dump_dir Destination buffer used to read the environment value.
+ * @param dump_dir_size Destination buffer size.
+ * @return SPANK status code.
+ */
 static int
 ensure_dump_dir_if_set(spank_t spank, char *dump_dir, size_t dump_dir_size) {
     if (!snccliprecon_env_get(
@@ -127,6 +161,15 @@ ensure_dump_dir_if_set(spank_t spank, char *dump_dir, size_t dump_dir_size) {
     return ESPANK_SUCCESS;
 }
 
+/**
+ * @brief Resolve the profiler plugin path for Enroot mounts.
+ *
+ * The job environment takes precedence over the plugin configuration.
+ *
+ * @param spank SPANK context.
+ * @param config Active plugin configuration.
+ * @param profiler_plugin Destination buffer.
+ */
 static void get_profiler_plugin(
     spank_t spank, const snccliprecon_config_t *config, char *profiler_plugin
 ) {
@@ -158,6 +201,16 @@ static void get_profiler_plugin(
     );
 }
 
+/**
+ * @brief Create the Enroot mount file when Enroot and dump output are present.
+ *
+ * @param spank SPANK context.
+ * @param config Active plugin configuration.
+ * @param job_id Slurm job id.
+ * @param step_id Slurm step id.
+ * @param dump_dir Final NCCL Inspector dump directory.
+ * @return SPANK status code.
+ */
 static int create_enroot_mount_if_ready(
     spank_t spank, const snccliprecon_config_t *config, uint32_t job_id,
     uint32_t step_id, const char *dump_dir

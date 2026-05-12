@@ -27,81 +27,89 @@ enum {
 #define SNCCLIPRECON_LOG_PREFIX_FORMAT     "[nccl_inspector_preconf] @ %s: "
 
 /**
- * Handles `slurm_spank_init`.
+ * @brief Initialize the plugin in supported SPANK contexts.
  *
- * @param spank: SPANK context.
- * @param argc: Number of plugin arguments.
- * @param argv: Plugin argument vector.
+ * Registers plugin options and parses plugstack arguments. Runtime setup is
+ * only meaningful in remote contexts, but options must also be registered in
+ * the local context so `srun` can accept them.
  *
+ * @param spank SPANK context.
+ * @param argc Number of plugin arguments.
+ * @param argv Plugin argument vector.
  * @return SPANK status code.
  */
 int snccliprecon_spank_init(spank_t spank, int argc, char **argv);
 
 /**
- * Handles `slurm_spank_user_init`.
+ * @brief Export NCCL Inspector defaults before user code starts.
  *
- * @param spank: SPANK context.
+ * Sets NCCL Inspector environment variables when the plugin is enabled and the
+ * job has not provided explicit values.
  *
+ * @param spank SPANK context.
  * @return SPANK status code.
  */
 int snccliprecon_user_init(spank_t spank);
 
 /**
- * Handles `slurm_spank_task_init_privileged`.
+ * @brief Prepare worker-local state before launching a task.
  *
- * @param spank: SPANK context.
+ * Renders the step-level dump directory, creates it if needed, creates the
+ * Enroot mount file, and guards the work so it runs once per worker and step.
  *
+ * @param spank SPANK context.
  * @return SPANK status code.
  */
 int snccliprecon_task_init_privileged(spank_t spank);
 
 /**
- * Handles `slurm_spank_task_exit`.
+ * @brief Remove worker-local state after a task exits.
  *
- * @param spank: SPANK context.
+ * Removes the Enroot mount file and worker lock files once per worker and step.
  *
+ * @param spank SPANK context.
  * @return SPANK status code.
  */
 int snccliprecon_task_exit(spank_t spank);
 
 /**
- * Emits a prefixed formatted error plugin log message.
+ * @brief Emit a prefixed error log message.
  *
- * @param format: printf-style format string.
+ * @param format printf-style format string.
  */
 void snccliprecon_log_errorf(const char *format, ...)
     __attribute__((format(printf, 1, 2)));
 
 /**
- * Emits a prefixed formatted error plugin log message with an errno message.
+ * @brief Emit a prefixed error log message with an errno description.
  *
- * @param errnum: errno value to render.
- * @param format: printf-style format string.
+ * @param errnum errno value to render.
+ * @param format printf-style format string.
  */
 void snccliprecon_log_error_errno(int errnum, const char *format, ...)
     __attribute__((format(printf, 2, 3)));
 
 /**
- * Emits a prefixed debug plugin log message.
+ * @brief Emit a prefixed debug log message.
  *
- * @param format: printf-style format string.
+ * @param format printf-style format string.
  */
 void snccliprecon_log_debug(const char *format, ...)
     __attribute__((format(printf, 1, 2)));
 
 /**
- * Emits a prefixed debug2 plugin log message.
+ * @brief Emit a prefixed debug2 log message.
  *
- * @param format: printf-style format string.
+ * @param format printf-style format string.
  */
 void snccliprecon_log_debug2(const char *format, ...)
     __attribute__((format(printf, 1, 2)));
 
 /**
- * Emits a prefixed debug2 plugin log message with an errno message.
+ * @brief Emit a prefixed debug2 log message with an errno description.
  *
- * @param errnum: errno value to render.
- * @param format: printf-style format string.
+ * @param errnum errno value to render.
+ * @param format printf-style format string.
  */
 void snccliprecon_log_debug2_errno(int errnum, const char *format, ...)
     __attribute__((format(printf, 2, 3)));

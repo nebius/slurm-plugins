@@ -65,6 +65,17 @@ uppercased plugin prefix, for example:
 - `SNCCLIPRECON_DUMP_VERBOSE`
 - `SNCCLIPRECON_DUMP_THREAD_INTERVAL_MICROSECONDS`
 
+## Activation
+
+NCCL Inspector setup is opt-in per job. Export `NCCL_INSPECTOR_ENABLE=1` in the
+job environment when the job should use this plugin:
+
+```bash
+NCCL_INSPECTOR_ENABLE=1 srun --nodes=1 --ntasks=1 hostname
+```
+
+Without this flag, runtime hooks fast-exit before performing filesystem work.
+
 ## Dump directory placeholders
 
 `dump-dir` supports Slurm-style substitutions:
@@ -91,8 +102,19 @@ The mount file is removed during task exit.
 - The plugin acts only in remote SPANK contexts for runtime setup.
 - Batch-script sentinel step IDs are ignored for once-per-worker hook guards.
 - Per-worker durable lock files are stored under `/tmp/nccl_inspector_preconf`.
+- Plugin log messages include the worker hostname.
+
+For job-scoped debug output, run the job with Slurm stepd debugging enabled:
+
+```bash
+srun --slurmd-debug=debug2 ...
+```
 
 ## Development
+
+The production build path compiles the plugin with `gcc` inside the target Slurm
+container image. Local CMake support is available for IDE indexing and local
+static analysis.
 
 ### Fetch Slurm headers
 

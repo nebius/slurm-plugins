@@ -167,6 +167,17 @@ append_string(char *dst, size_t dst_size, size_t *offset, const char *value) {
     return 0;
 }
 
+/**
+ * @brief Expand supported Slurm placeholders in a dump directory template.
+ *
+ * Job-level rendering expands `%j`. Step-level rendering also expands `%s` and
+ * `%J`, because the step id is only available in worker-side hooks.
+ *
+ * @param render Rendering inputs and mode.
+ * @param output Destination buffer.
+ * @param output_size Destination buffer size.
+ * @return `0` on success, `-1` on failure with `errno` set.
+ */
 static int render_dump_dir(
     const dump_dir_render_t *render, char *output, size_t output_size
 ) {
