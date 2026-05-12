@@ -1,95 +1,162 @@
 #include "snccliprecon.h"
 #include "snccliprecon_config.h"
 #include "snccliprecon_env.h"
-#include <stdarg.h>
-#include <stdio.h>
 #include <slurm/spank.h>
-#include <string.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 SPANK_PLUGIN(nccl_inspector_preconf, 1);
 
 typedef void (*snccliprecon_log_fn_t)(const char *format, ...);
 
-#define SNCCLIPRECON_LOG_BUFFER_SIZE 2048
-#define SNCCLIPRECON_HOSTNAME_BUFFER_SIZE 256
+enum {
+    SNCCLIPRECON_INSPECTOR_ENABLE_BUFFER_SIZE = 8,
+};
 
-static const char *snccliprecon_log_hostname(char *hostname, size_t hostname_size) {
-  if (hostname_size == 0) {
-    return "unknown";
-  }
+static const char *
+snccliprecon_log_hostname(char *hostname, size_t hostname_size) {
+    if (hostname_size == 0) {
+        return "unknown";
+    }
 
-  if (gethostname(hostname, hostname_size) != 0 || hostname[0] == '\0') {
-    (void) snprintf(hostname, hostname_size, "%s", "unknown");
-  }
-  hostname[hostname_size - 1] = '\0';
+    if (gethostname(hostname, hostname_size) != 0 || hostname[0] == '\0') {
+        (void)snprintf(hostname, hostname_size, "%s", "unknown");
+    }
+    hostname[hostname_size - 1] = '\0';
 
-  return hostname;
+    return hostname;
 }
 
-static void snccliprecon_vlog_at(snccliprecon_log_fn_t log_fn, const char *format, va_list args) {
-  char buffer[SNCCLIPRECON_LOG_BUFFER_SIZE];
-  char hostname[SNCCLIPRECON_HOSTNAME_BUFFER_SIZE];
+static void snccliprecon_vlog_at(
+    snccliprecon_log_fn_t log_fn, const char *format, va_list args
+) {
+    char buffer[SNCCLIPRECON_LOG_BUFFER_SIZE];
+    char hostname[SNCCLIPRECON_HOSTNAME_BUFFER_SIZE];
 
-  vsnprintf(buffer, sizeof(buffer), format, args);
-  log_fn(SNCCLIPRECON_LOG_PREFIX_FORMAT "%s", snccliprecon_log_hostname(hostname, sizeof(hostname)), buffer);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    log_fn(
+        SNCCLIPRECON_LOG_PREFIX_FORMAT "%s",
+        snccliprecon_log_hostname(hostname, sizeof(hostname)),
+        buffer
+    );
+}
+
+static const char *
+snccliprecon_strerror(int errnum, char *buffer, size_t buffer_size) {
+    if (buffer_size == 0) {
+        return "";
+    }
+
+#if defined(__GLIBC__) && defined(_GNU_SOURCE)
+    char *message = strerror_r(errnum, buffer, buffer_size);
+    if (message != NULL) {
+        return message;
+    }
+#else
+    if (strerror_r(errnum, buffer, buffer_size) == 0) {
+        return buffer;
+    }
+#endif
+
+    (void)snprintf(buffer, buffer_size, "errno=%d", errnum);
+    buffer[buffer_size - 1] = '\0';
+    return buffer;
+}
+
+static void snccliprecon_vlog_errno_at(
+    snccliprecon_log_fn_t log_fn, int errnum, const char *format, va_list args
+) {
+    char message[SNCCLIPRECON_LOG_BUFFER_SIZE];
+    char error[SNCCLIPRECON_ERROR_BUFFER_SIZE];
+    char hostname[SNCCLIPRECON_HOSTNAME_BUFFER_SIZE];
+
+    vsnprintf(message, sizeof(message), format, args);
+    log_fn(
+        SNCCLIPRECON_LOG_PREFIX_FORMAT "%s: %s",
+        snccliprecon_log_hostname(hostname, sizeof(hostname)),
+        message,
+        snccliprecon_strerror(errnum, error, sizeof(error))
+    );
 }
 
 void snccliprecon_log_errorf(const char *format, ...) {
-  va_list args;
+    va_list args;
 
-  va_start(args, format);
-  snccliprecon_vlog_at(slurm_error, format, args);
-  va_end(args);
+    va_start(args, format);
+    snccliprecon_vlog_at(slurm_error, format, args);
+    va_end(args);
+}
+
+void snccliprecon_log_error_errno(int errnum, const char *format, ...) {
+    va_list args;
+
+    va_start(args, format);
+    snccliprecon_vlog_errno_at(slurm_error, errnum, format, args);
+    va_end(args);
 }
 
 void snccliprecon_log_debug(const char *format, ...) {
-  va_list args;
+    va_list args;
 
-  va_start(args, format);
-  snccliprecon_vlog_at(slurm_debug, format, args);
-  va_end(args);
+    va_start(args, format);
+    snccliprecon_vlog_at(slurm_debug, format, args);
+    va_end(args);
 }
 
 void snccliprecon_log_debug2(const char *format, ...) {
-  va_list args;
+    va_list args;
 
-  va_start(args, format);
-  snccliprecon_vlog_at(slurm_debug2, format, args);
-  va_end(args);
+    va_start(args, format);
+    snccliprecon_vlog_at(slurm_debug2, format, args);
+    va_end(args);
+}
+
+void snccliprecon_log_debug2_errno(int errnum, const char *format, ...) {
+    va_list args;
+
+    va_start(args, format);
+    snccliprecon_vlog_errno_at(slurm_debug2, errnum, format, args);
+    va_end(args);
 }
 
 // region Fast-exit
 
 static bool nccl_inspector_enabled(spank_t spank) {
-  char inspector_enabled[8] = {0};
-  if (!snccliprecon_env_get(spank, "NCCL_INSPECTOR_ENABLE", inspector_enabled, sizeof(inspector_enabled))) {
-    snccliprecon_log_debug("NCCL_INSPECTOR_ENABLE is not set");
-    return false;
-  }
+    char inspector_enabled[SNCCLIPRECON_INSPECTOR_ENABLE_BUFFER_SIZE] = {0};
+    if (!snccliprecon_env_get(
+            spank,
+            "NCCL_INSPECTOR_ENABLE",
+            inspector_enabled,
+            sizeof(inspector_enabled)
+        )) {
+        snccliprecon_log_debug("NCCL_INSPECTOR_ENABLE is not set");
+        return false;
+    }
 
-  snccliprecon_log_debug2("NCCL_INSPECTOR_ENABLE=%s", inspector_enabled);
-  return strcmp(inspector_enabled, "1") == 0;
+    snccliprecon_log_debug2("NCCL_INSPECTOR_ENABLE=%s", inspector_enabled);
+    return strcmp(inspector_enabled, "1") == 0;
 }
 
 // endregion Fast-exit
 
 int snccliprecon_spank_init(spank_t spank, int argc, char **argv) {
-  switch (spank_context()) {
-    case S_CTX_LOCAL:
-    case S_CTX_REMOTE:
-      break;
-    default:
-      return ESPANK_SUCCESS;
-  }
+    switch (spank_context()) {
+        case S_CTX_LOCAL:
+        case S_CTX_REMOTE:
+            break;
+        default:
+            return ESPANK_SUCCESS;
+    }
 
-  if (snccliprecon_args_register(spank) != ESPANK_SUCCESS) {
-    return ESPANK_ERROR;
-  }
-  snccliprecon_config_parse_args(spank, argc, argv);
+    if (snccliprecon_args_register(spank) != ESPANK_SUCCESS) {
+        return ESPANK_ERROR;
+    }
+    snccliprecon_config_parse_args(spank, argc, argv);
 
-  return ESPANK_SUCCESS;
+    return ESPANK_SUCCESS;
 }
 
 /**
@@ -102,7 +169,7 @@ int snccliprecon_spank_init(spank_t spank, int argc, char **argv) {
  * @return SPANK status code.
  */
 int slurm_spank_init(spank_t spank, int argc, char **argv) {
-  return snccliprecon_spank_init(spank, argc, argv);
+    return snccliprecon_spank_init(spank, argc, argv);
 }
 
 /**
@@ -115,18 +182,18 @@ int slurm_spank_init(spank_t spank, int argc, char **argv) {
  * @return SPANK status code.
  */
 int slurm_spank_user_init(spank_t spank, int argc, char **argv) {
-  (void) argc;
-  (void) argv;
+    (void)argc;
+    (void)argv;
 
-  if (spank_remote(spank) != 1) {
-    return ESPANK_SUCCESS;
-  }
+    if (spank_remote(spank) != 1) {
+        return ESPANK_SUCCESS;
+    }
 
-  if (!nccl_inspector_enabled(spank)) {
-    return ESPANK_SUCCESS;
-  }
+    if (!nccl_inspector_enabled(spank)) {
+        return ESPANK_SUCCESS;
+    }
 
-  return snccliprecon_user_init(spank);
+    return snccliprecon_user_init(spank);
 }
 
 /**
@@ -139,18 +206,18 @@ int slurm_spank_user_init(spank_t spank, int argc, char **argv) {
  * @return SPANK status code.
  */
 int slurm_spank_task_init_privileged(spank_t spank, int argc, char **argv) {
-  (void) argc;
-  (void) argv;
+    (void)argc;
+    (void)argv;
 
-  if (spank_remote(spank) != 1) {
-    return ESPANK_SUCCESS;
-  }
+    if (spank_remote(spank) != 1) {
+        return ESPANK_SUCCESS;
+    }
 
-  if (!nccl_inspector_enabled(spank)) {
-    return ESPANK_SUCCESS;
-  }
+    if (!nccl_inspector_enabled(spank)) {
+        return ESPANK_SUCCESS;
+    }
 
-  return snccliprecon_task_init_privileged(spank);
+    return snccliprecon_task_init_privileged(spank);
 }
 
 /**
@@ -163,16 +230,16 @@ int slurm_spank_task_init_privileged(spank_t spank, int argc, char **argv) {
  * @return SPANK status code.
  */
 int slurm_spank_task_exit(spank_t spank, int argc, char **argv) {
-  (void) argc;
-  (void) argv;
+    (void)argc;
+    (void)argv;
 
-  if (spank_remote(spank) != 1) {
-    return ESPANK_SUCCESS;
-  }
+    if (spank_remote(spank) != 1) {
+        return ESPANK_SUCCESS;
+    }
 
-  if (!nccl_inspector_enabled(spank)) {
-    return ESPANK_SUCCESS;
-  }
+    if (!nccl_inspector_enabled(spank)) {
+        return ESPANK_SUCCESS;
+    }
 
-  return snccliprecon_task_exit(spank);
+    return snccliprecon_task_exit(spank);
 }

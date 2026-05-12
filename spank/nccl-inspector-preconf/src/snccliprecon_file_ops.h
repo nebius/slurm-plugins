@@ -14,6 +14,8 @@ int snccliprecon_mkdir_all(const char *path);
 
 int snccliprecon_ensure_dir(const char *path);
 
-int snccliprecon_with_lock(const char *path, snccliprecon_locked_fn_t fn, void *arg);
+int snccliprecon_with_lock(
+    const char *path, snccliprecon_locked_fn_t fn, void *arg
+);
 
 #endif
