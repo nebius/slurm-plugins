@@ -46,7 +46,7 @@ jobs:
             lib_arch: 'aarch64'
 
           - distribution: 'ubuntu24.04'
-          - deb_release: 1
+          - deb_release: 2
 
     steps:
       - name: Checkout repository
@@ -112,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        deb_release: ['1']
+        deb_release: ['2']
         distribution: ['ubuntu24.04']
 
     concurrency:

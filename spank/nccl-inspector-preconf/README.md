@@ -4,7 +4,9 @@
 <img alt="Logo of the nccl-inspector-preconf plugin depicting a leprechaun" src="./assets/snccliprecon.png" width="400" height="auto"/>
 </p>
 
-`nccl-inspector-preconf` is a Slurm SPANK plugin that prepares [NCCL Inspector](https://docs.nvidia.com/networking/display/hpcxv2251/spectrum-x-nccl-plugin) environment variables before user code starts.
+`nccl-inspector-preconf` is a Slurm SPANK plugin that
+prepares [NCCL Inspector](https://docs.nvidia.com/networking/display/hpcxv2251/spectrum-x-nccl-plugin) environment
+variables before user code starts.
 
 > [!NOTE]
 > Short name is `snccliprecon` (read as `Sneaky Leprechaun`)
@@ -34,7 +36,7 @@ Settings are applied in this order:
 3. Environment variables
 4. `srun` plugin options
 
-To inspect generated SPANK options:
+To inspect SPANK options:
 
 ```bash
 srun --help
@@ -63,6 +65,17 @@ uppercased plugin prefix, for example:
 - `SNCCLIPRECON_DUMP_VERBOSE`
 - `SNCCLIPRECON_DUMP_THREAD_INTERVAL_MICROSECONDS`
 
+## Activation
+
+NCCL Inspector setup is opt-in per job. Export `NCCL_INSPECTOR_ENABLE=1` in the
+job environment when the job should use this plugin:
+
+```bash
+NCCL_INSPECTOR_ENABLE=1 srun --nodes=1 --ntasks=1 hostname
+```
+
+Without this flag, runtime hooks fast-exit before performing filesystem work.
+
 ## Dump directory placeholders
 
 `dump-dir` supports Slurm-style substitutions:
@@ -89,18 +102,19 @@ The mount file is removed during task exit.
 - The plugin acts only in remote SPANK contexts for runtime setup.
 - Batch-script sentinel step IDs are ignored for once-per-worker hook guards.
 - Per-worker durable lock files are stored under `/tmp/nccl_inspector_preconf`.
+- Plugin log messages include the worker hostname.
+
+For job-scoped debug output, run the job with Slurm stepd debugging enabled:
+
+```bash
+srun --slurmd-debug=debug2 ...
+```
 
 ## Development
 
-### Generate SPANK options
-
-The SPANK option table and callbacks are generated from `src/internal/arg`.
-
-```bash
-make generate-options
-```
-
-This writes `src/spank_options.c`.
+The production build path compiles the plugin with `gcc` inside the target Slurm
+container image. Local CMake support is available for IDE indexing and local
+static analysis.
 
 ### Fetch Slurm headers
 
@@ -108,7 +122,7 @@ This writes `src/spank_options.c`.
 make docker-headers
 ```
 
-This populates `src/vendor/slurm`.
+This populates `vendor/slurm`.
 
 You can override the Slurm version:
 
@@ -127,8 +141,6 @@ Useful overrides:
 ```bash
 make ARCH=amd64 docker-build
 make ARCH=arm64 docker-build
-make TARGET_COMPILATION_MODE=debug docker-build
-make TARGET_COMPILATION_MODE=release docker-build
 make SLURM_VERSION=<VERSION> docker-build
 ```
 

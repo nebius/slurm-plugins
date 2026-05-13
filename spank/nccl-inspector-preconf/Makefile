@@ -10,13 +10,11 @@ else
 ARCH_LIB = x86_64
 endif
 
-TARGET_COMPILATION_MODE ?= release
-
 SLURM_VERSION ?= 25.11.3
 DOCKER_IMAGE_DAYTIME ?= 20260324153054
 
 BUILD_DIR := build
-SLURM_HEADERS_DIR := src/vendor/slurm
+SLURM_HEADERS_DIR := vendor/slurm
 
 DOCKER_IMAGE := snccliprecon
 DOCKER_BUILDER_IMAGE := $(DOCKER_IMAGE)-builder
@@ -65,7 +63,6 @@ docker-build: $(BUILD_DIR)
 		--build-arg ARCH=$(ARCH) \
 		--build-arg SLURM_VERSION=$(SLURM_VERSION) \
 		--build-arg IMAGE_DAYTIME=$(DOCKER_IMAGE_DAYTIME) \
-		--build-arg MODE=$(TARGET_COMPILATION_MODE) \
 		--build-arg PLUGIN_NAME=$(PLUGIN_NAME) \
 		.
 
@@ -91,8 +88,3 @@ redeploy: $(PLUGIN_SO)
 		$(NODE_RANGE_LOGIN), \
 		kubectl -n soperator cp ./$(PLUGIN_SO) login-$(i):/usr/lib/$(ARCH_LIB)-linux-gnu/slurm/$(PLUGIN_NAME).so ; \
 	)
-
-.PHONY: generate-options
-generate-options:
-	@cd src && \
-		go run ./cmd/spank-options-gen > spank_options.c

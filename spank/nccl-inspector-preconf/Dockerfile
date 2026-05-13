@@ -10,7 +10,6 @@ RUN echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | tee /etc/apt/s
     apt update && \
     apt -y --no-install-recommends install \
         build-essential \
-        golang-1.23 \
         git  \
         nfpm
 
@@ -23,18 +22,17 @@ ARG PLUGIN_NAME
 COPY src/ /usr/src/${PLUGIN_NAME}/
 WORKDIR /usr/src/${PLUGIN_NAME}
 
-ENV CGO_ENABLED=1
-ENV GO111MODULE=on
-ENV PATH="$PATH:/usr/lib/go-1.23/bin"
-
-RUN export CGO_CFLAGS="-O3 -fPIC -Wall -Wextra -Wno-unused-parameter -I/usr/include" && \
-    export CGO_LDFLAGS="" && \
-    go build \
-        -buildmode=c-shared \
-        -trimpath \
-        -ldflags="-s -w" \
-        -o ./build/${PLUGIN_NAME}.so \
-        . && \
+RUN mkdir -p ./build && \
+    gcc \
+      -std=gnu99 \
+      -shared \
+      -Wall -Wextra -Wno-unused-parameter \
+      -Wl,-s \
+      -fPIC \
+      -O3 \
+      -I. -I/usr/include \
+      -o ./build/${PLUGIN_NAME}.so \
+      ./*.c && \
     ls -lah ./build/*.so && \
     mv ./build/*.so /usr/src/nccl-inspector-preconf-deb
 
