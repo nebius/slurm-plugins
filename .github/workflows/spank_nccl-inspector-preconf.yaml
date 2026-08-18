@@ -18,23 +18,14 @@ jobs:
       matrix:
         arch: ['amd64', 'arm64']
         slurm_version:
-          - '25.05.6'
-          - '25.11.2'
-          - '25.11.3'
-          - '25.11.4'
           - '25.11.5'
+          - '26.05.3-nebius-2'
 
         include:
-          - slurm_version: '25.05.6'
-            image_daytime: '20260421092341'
-          - slurm_version: '25.11.2'
-            image_daytime: '20260220131744'
-          - slurm_version: '25.11.3'
-            image_daytime: '20260324153054'
-          - slurm_version: '25.11.4'
-            image_daytime: '20260407133055'
           - slurm_version: '25.11.5'
             image_daytime: '20260421092341'
+          - slurm_version: '26.05.3-nebius-2'
+            image_daytime: '20260816173636'
 
           - arch: 'amd64'
             platform: 'linux/amd64'
@@ -46,7 +37,7 @@ jobs:
             lib_arch: 'aarch64'
 
           - distribution: 'ubuntu24.04'
-          - deb_release: 2
+          - deb_release: 4
 
     steps:
       - name: Checkout repository
@@ -103,7 +94,7 @@ jobs:
           retention-days: 7
 
   release:
-    name: Release DEB ${{ matrix.deb_release }} / ${{ matrix.distribution }}
+    name: Release bundle ${{ matrix.bundle_release }} / ${{ matrix.distribution }}
     needs: [build]
     runs-on: ubuntu-24.04
     permissions:
@@ -112,11 +103,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        deb_release: ['2']
+        bundle_release: ['4']
+        deb_release: ['4']
         distribution: ['ubuntu24.04']
 
     concurrency:
-      group: release-spank-nccl-inspector-preconf-${{ matrix.deb_release }}-${{ matrix.distribution }}
+      group: release-spank-nccl-inspector-preconf-${{ matrix.bundle_release }}-${{ matrix.distribution }}
       cancel-in-progress: false
 
     steps:
@@ -153,7 +145,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # language=bash
         run: |
-          tag="spank-nccl-inspector-preconf-${{ matrix.deb_release }}"
+          tag="spank-nccl-inspector-preconf-${{ matrix.bundle_release }}"
           if gh release view "$tag" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
@@ -166,8 +158,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: spank-nccl-inspector-preconf-${{ matrix.deb_release }}
-          name: SPANK NCCL Inspector Preconf v${{ matrix.deb_release }}
+          tag_name: spank-nccl-inspector-preconf-${{ matrix.bundle_release }}
+          name: SPANK NCCL Inspector Preconf v${{ matrix.bundle_release }}
           body_path: release_body.md
           draft: false
           prerelease: false
