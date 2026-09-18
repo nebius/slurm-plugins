@@ -19,13 +19,13 @@ jobs:
         arch: ['amd64', 'arm64']
         slurm_version:
           - '25.11.5'
-          - '26.05.3-nebius-2'
+          - '26.05.4-nebius-1'
 
         include:
           - slurm_version: '25.11.5'
             image_daytime: '20260421092341'
-          - slurm_version: '26.05.3-nebius-2'
-            image_daytime: '20260816173636'
+          - slurm_version: '26.05.4-nebius-1'
+            image_daytime: '20260918141513'
 
           - arch: 'amd64'
             platform: 'linux/amd64'
@@ -37,7 +37,7 @@ jobs:
             lib_arch: 'aarch64'
 
           - distribution: 'ubuntu24.04'
-          - deb_release: 4
+          - deb_release: &plugin_release '5'
 
     steps:
       - name: Checkout repository
@@ -103,8 +103,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        bundle_release: ['4']
-        deb_release: ['4']
+        bundle_release: [*plugin_release]
+        deb_release: [*plugin_release]
         distribution: ['ubuntu24.04']
 
     concurrency:
