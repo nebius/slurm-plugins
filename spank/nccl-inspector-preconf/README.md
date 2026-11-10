@@ -110,6 +110,22 @@ For job-scoped debug output, run the job with Slurm stepd debugging enabled:
 srun --slurmd-debug=debug2 ...
 ```
 
+## Release builds
+
+The `Build NCCL Inspector Pre-Conf` workflow builds DEBs for `amd64` and `arm64`.
+Bundle release `6` uses Slurm `26.05.4-nebius-3` with base image
+`cr.eu-north1.nebius.cloud/ml-containers/slurm:26.05.4-nebius-3-20261110125339`.
+The Slurm `25.11.5` matrix entry retains its existing base image.
+
+The shared `plugin_release` YAML anchor sets both the package revision and the
+bundle release number. The expected GitHub release is
+`spank-nccl-inspector-preconf-6`; the new Slurm package version is
+`26.05.4-nebius-3-6`.
+
+After the workflow publishes the GitHub release, publish its DEBs to Nebius APT
+through TeamCity. GitHub publication alone does not make the packages available
+in APT. Consumers must use the matching Slurm version and plugin revision.
+
 ## Development
 
 The production build path compiles the plugin with `gcc` inside the target Slurm
