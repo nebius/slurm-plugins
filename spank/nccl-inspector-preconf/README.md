@@ -112,15 +112,21 @@ srun --slurmd-debug=debug2 ...
 
 ## Release builds
 
-The `Build NCCL Inspector Pre-Conf` workflow builds DEBs for `amd64` and `arm64`.
-Bundle release `6` uses Slurm `26.05.4-nebius-3` with base image
-`cr.eu-north1.nebius.cloud/ml-containers/slurm:26.05.4-nebius-3-20261110125339`.
-The Slurm `25.11.5` matrix entry retains its existing base image.
+The `Build NCCL Inspector Pre-Conf` workflow builds DEBs for `amd64` and `arm64`
+for every Slurm version listed in the matrix of
+[`spank_nccl-inspector-preconf.yaml`](../../.github/workflows/spank_nccl-inspector-preconf.yaml).
+Each version is built on the base image
+`cr.eu-north1.nebius.cloud/ml-containers/slurm:<slurm_version>-<image_daytime>`,
+where `image_daytime` is the timestamp of the base image build and is set per
+Slurm version in the same matrix.
 
 The shared `plugin_release` YAML anchor sets both the package revision and the
-bundle release number. The expected GitHub release is
-`spank-nccl-inspector-preconf-6`; the new Slurm package version is
-`26.05.4-nebius-3-6`.
+bundle release number. Increment it once for every rebuild. The GitHub release is
+named `spank-nccl-inspector-preconf-<plugin_release>` and the package version is
+`<slurm_version>-<plugin_release>`.
+
+To build for a new Slurm release, update its `slurm_version` and `image_daytime`
+in the matrix and increment `plugin_release`.
 
 After the workflow publishes the GitHub release, publish its DEBs to Nebius APT
 through TeamCity. GitHub publication alone does not make the packages available
